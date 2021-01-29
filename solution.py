@@ -43,7 +43,7 @@ class Solution:
 
     def reverseKGroup(self, head: ListNode, k: int) -> ListNode:
         # p25 hard 递归 链表
-        # ... k=2是就是p24，用list存储后面的节点，然后处理
+        # ... k=2时就是p24，用list存储k长度的节点，然后分情况处理
         pass
 
 
