@@ -41,7 +41,6 @@ class Solution:
         # ... 状态迭代，(str_, int_left_pare, int_right_pare) 记录生成状态
         pass
 
-
     def mergeKLists(self, lists: List[ListNode]) -> ListNode:
         # p23 hard 分治 递归 链表
         if not lists: return None
@@ -66,12 +65,89 @@ class Solution:
 
     def removeDuplicates(self, nums: List[int]) -> int:
         # p26 easy
-        # ...已排序数组去重，idx，i记录两个数组指针
+        # ... 已排序数组去重，idx，i记录两个数组指针
         pass
 
     def removeElement(self, nums: List[int], val: int) -> int:
-        # p27 easy ...同p26
+        # p27 easy
+        # ... 同p26
         pass
 
+    def strStr(self, haystack: str, needle: str) -> int:
+        # p28 easy
+        # ... 内置函数时间和空间效率都偏低，虽然代码量少
+        # ... 但是python的意义是什么？！
+        return haystack.find(needle)
+
+    def divide(self, dividend: int, divisor: int) -> int:
+        # p29 medium 位运算思想
+        # ... 除法运算，用倍增思想定边界
+        pass
+
+    def findSubstring(self, s: str, words: List[str]) -> List[int]:
+        # p30 hard 滑动窗口 双指针
+        # ... 不同初始条件下的窗口滑动
+
+        def simple_method(s, words):
+            from collections import Counter
+            c_words = Counter(words)
+            n, m = len(words[0]), len(words)
+
+            res = []
+            for i in range(len(s)-n*m+1):
+                if Counter(s[i+n*j:i+n*(j+1)] for j in range(m)) == c_words:
+                    res.append(i)
+            return res
+            # 测试时间 900+ms
+
+        def moving_window_method(s, words):
+            from collections import Counter, defaultdict
+            c_words = Counter(words)
+            n, len_w = len(words), len(words[0])
+            res = []
+            for i in range(len_w):
+                # 初始化
+                fast, slow = n*len_w+i, i
+                dd = defaultdict(int)
+                for j in range(slow, fast, len_w):
+                    dd[s[j:j+len_w]] += 1
+                # 窗口滑动
+                for _ in range(fast, len(s)+1, len_w):  # +1 使窗口滑出
+                    # 判断条件
+                    if dd == c_words: res.append(slow)
+                    # 更新窗口
+                    tmp1, tmp2 = s[slow:slow+len_w], s[fast:fast+len_w]
+                    slow, fast = slow+len_w, fast+len_w
+                    if dd[tmp1] == 1: dd.pop(tmp1)
+                    else: dd[tmp1] -= 1
+                    dd[tmp2] += 1
+            return res
+        # 测试时间 92ms，字典判断可能可以更优化，这里性价比已经比较高。
+
+    def nextPermutation(self, nums: List[int]) -> None:
+        # p31 medium 排序
+        # ... 冒泡排序的，寻找下一个正序对。
+        #     python自带itertools.permutations功能，值得体会permutations的算法
+
+        def nextPermutation_BubbleSort():
+            # 冒泡排序（从大到小排列， 目标寻找第一对正序对）
+            if len(nums) < 2: return
+            for i in range(len(nums)-2, -1, -1):
+                if nums[i] >= nums[-1]:  # 如果不存在正序对，
+                    nums[i:] = nums[i+1:]+[nums[i]]  # 冒泡到底
+                else:  # 如果存在正序对，
+                    for j in range(i+1, len(nums)):
+                        if nums[i] < nums[j]:  # 查找第一个正序对，
+                            nums[i], nums[j] = nums[j], nums[i]  # 并交换位置
+                            return  # 退出
+
+        def nextPermutation_faster():
+            if len(nums) < 2: return
+            idx = len(nums)-1
+            while idx > 0 and nums[idx-1] >= nums[idx]: idx -= 1
+            nums[idx:] = reversed(nums[idx:])  # 链表反序，效率和上面差不太多
+            if idx > 0:
+                for j in range(idx, len(nums)):
+                    pass  # 查找第一个正序对，并交换位置，退出。代码同上
 
 
