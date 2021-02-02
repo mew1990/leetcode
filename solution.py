@@ -3,7 +3,7 @@
 
 from .my_defs import *
 from typing import *
-
+from bisect import bisect_left, bisect
 
 class Solution:
     """ 学习编程技巧 """
@@ -149,5 +149,44 @@ class Solution:
             if idx > 0:
                 for j in range(idx, len(nums)):
                     pass  # 查找第一个正序对，并交换位置，退出。代码同上
+
+    def longestValidParentheses(self, s: str) -> int:
+        # p32 hard 栈
+        # ... 官方题解还有 动态规划，以及扫描简化版本。这两个版本都等价于栈，
+        #     时间都是 O(N)，空间效率不同。
+        #     不过如果再考虑 大括号，中括号，就用栈方便些。
+        res = 0
+        stack = [-1]  # 初始化做标记，表示待匹配
+        for i in range(len(s)):
+            if s[i] == '(':
+                stack.append(i)
+            else:
+                k = stack.pop()
+                if stack:  # 栈非空为合法匹配
+                    res = max(res, i-stack[-1])  # 记录匹配的长度
+                else:  # 否则为非法匹配
+                    stack.append(i)  # 重置标记点
+        return res
+
+    def search(self, nums: List[int], target: int) -> int:
+        # p33 medium 二分法/分治
+        # ... 考虑用二分查找（必满足左边部分>=左边界>右边界>=右边部分）
+        #     中间点大于左边界，则划分为[left, mid] 和其他，
+        #     中间点小于右边界，则划分为[mid, right]和其他，分治。
+        try:
+            return nums.index(target) # try 的特点值得关注
+        except:
+            return -1
+
+    def searchRange(self, nums: List[int], target: int) -> List[int]:
+        # p34 medium 二分
+        # ... 二分查找代码阅读 bisect.py，会用 bisect_left 和 bisect(=bisect_right)
+        #     根据 bisect.py 说明：即插入target后仍有序的最小index，最大index
+        l = bisect_left(nums, target)
+        if len(nums) == 0 or l == len(nums) or nums[l] != target:
+            return [-1, -1]
+        else:
+            return [l, bisect(nums, target)-1]
+
 
 

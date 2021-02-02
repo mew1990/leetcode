@@ -43,6 +43,18 @@ class p19(unittest.TestCase):
         self._assert_equal(([1, 2], 2), [2])
 
 
+class p34(unittest.TestCase):
+    method = Solution().searchRange
+
+    def _assert_equal(self, inputs, outputs):
+        self.assertEqual(self.method(*inputs), outputs)
+
+    def test_case(self):
+        self._assert_equal(([5,7,7,8,8,10], 8), [3,4])
+        self._assert_equal(([5,7,7,8,8,10], 6), [-1,-1])
+        self._assert_equal(([], 0), [-1, -1])
+
+
 if __name__ == '__main__':
     p20().run()
     p21().run()
