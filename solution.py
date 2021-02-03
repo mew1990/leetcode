@@ -4,6 +4,8 @@
 from .my_defs import *
 from typing import *
 from bisect import bisect_left, bisect
+import collections
+
 
 class Solution:
     """ 学习编程技巧 """
@@ -174,7 +176,7 @@ class Solution:
         #     中间点大于左边界，则划分为[left, mid] 和其他，
         #     中间点小于右边界，则划分为[mid, right]和其他，分治。
         try:
-            return nums.index(target) # try 的特点值得关注
+            return nums.index(target)  # try 的特点值得关注
         except:
             return -1
 
@@ -188,5 +190,47 @@ class Solution:
         else:
             return [l, bisect(nums, target)-1]
 
+    def searchInsert(self, nums: List[int], target: int) -> int:
+        # p35 easy  二分
+        pass
 
+    def isValidSudoku(self, board: List[List[str]]) -> bool:
+        # p36 medium 数学
+        # ... 判断数独合法性，数学题，就简洁美观易懂
+        col = [[False]*10 for _ in range(9)]
+        row = [[False]*10 for _ in range(9)]
+        box = [[False]*10 for _ in range(9)]
+        for i in range(9):
+            for j in range(9):
+                if board[i][j] == '.': continue
+                num = int(board[i][j])
+                if (row[i][num] or col[j][num] or box[i//3*3+j//3][num]):
+                    return False
+                row[i][num] = col[j][num] = box[i//3*3+j//3][num] = True
+        return True
 
+    def solveSudoku(self, board: List[List[str]]) -> None:
+        # p37 hard 数学 DFS
+        col = [[False]*10 for _ in range(9)]
+        row = [[False]*10 for _ in range(9)]
+        box = [[[False]*10 for _ in range(3)] for _ in range(3)] # 与上一题box不一样
+
+        def dfs(tag):
+            if tag == 81: return True  # 注意结束标志
+            i, j = tag//9, tag%9
+            if board[i][j] != '.': return dfs(tag+1)
+            for num in range(1, 10):
+                if row[i][num] or col[j][num] or box[i//3][j//3][num]:
+                    continue
+                row[i][num] = col[j][num] = box[i//3][j//3][num] = True
+                board[i][j] = str(num)
+                if dfs(tag+1): return True  # python中DFS回溯的方式
+                board[i][j] = '.'  # 这条语句的重要性，不可删
+                row[i][num] = col[j][num] = box[i//3][j//3][num] = False
+
+        for i in range(9):
+            for j in range(9):
+                if board[i][j] == '.': continue
+                num = int(board[i][j])
+                row[i][num] = col[j][num] = box[i//3][j//3][num] = True
+        dfs(0)
