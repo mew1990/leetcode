@@ -84,6 +84,32 @@ class p37(unittest.TestCase):
         self._assert_equal(a, b)
 
 
+class p39(unittest.TestCase):
+    method = Solution().combinationSum
+
+    def _assert_equal(self, inputs, outputs):
+        res = self.method(*inputs)
+        self.assertEqual(res, outputs)
+
+    def test_case(self):
+        self._assert_equal(([2, 3, 6, 7], 7),
+                           [[2, 2, 3], [7]])
+
+
+class p40(unittest.TestCase):
+    method = Solution().combinationSum2
+
+    def _assert_equal(self, inputs, outputs):
+        res = self.method(*inputs)
+        res.sort()
+        outputs.sort()
+        self.assertEqual(res, outputs)
+
+    def test_case(self):
+        self._assert_equal(([10, 1, 2, 7, 6, 1, 5], 8),
+                           [[1, 1, 6], [1, 2, 5], [1, 7], [2, 6]])
+
+
 if __name__ == '__main__':
     p20().run()
     p21().run()

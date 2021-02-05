@@ -213,7 +213,7 @@ class Solution:
         # p37 hard 数学 DFS
         col = [[False]*10 for _ in range(9)]
         row = [[False]*10 for _ in range(9)]
-        box = [[[False]*10 for _ in range(3)] for _ in range(3)] # 与上一题box不一样
+        box = [[[False]*10 for _ in range(3)] for _ in range(3)]  # 与上一题box不一样
 
         def dfs(tag):
             if tag == 81: return True  # 注意结束标志
@@ -234,3 +234,71 @@ class Solution:
                 num = int(board[i][j])
                 row[i][num] = col[j][num] = box[i//3][j//3][num] = True
         dfs(0)
+
+    def countAndSay(self, n: int) -> str:
+        # p38 easy math
+        # ... 外观数列，是个有意思的数论问题
+        pass
+
+    def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
+        # p39 medium DP DFS
+        # ... 无重复元素，无限制重复选取，无穷背包问题 （网上查 《背包九讲》非常经典）
+        # ... 这里要所有解，如果用DFS也可以 dfs(index:int, sum_list:list)
+        res = [[] for _ in range(target+1)]
+        res[0].append([]) # 初始化，没有元素
+        for i in candidates:
+            for j in range(i,  target+1): # 正序-无穷背包
+                for k_list in res[j-i]:
+                    res[j].append(k_list+[i])
+        return res[target]
+
+    def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:
+        # p40 medium DP DFS
+        # ... 分组背包问题（存在重复元素）
+        res = [[] for _ in range(target+1)]
+        a = collections.Counter(candidates)
+        res[0].append([])
+        for k, v in a.items():
+            for j in range(target, k-1, -1):  # 逆序-分组背包
+                for mv in range(1, v+1):   # 分组集合
+                    if j-k*mv < 0: break
+                    tmp = [k]*mv
+                    for k_list in res[j-k*mv]:
+                        res[j].append(k_list+tmp)
+        return res[target]
+
+
+    def trap(self, height: List[int]) -> int:
+        # p42 hard 数学 双指针/DP
+        # ... DP比较容易写，双指针空间省，难写一点。官方题解很不错
+        def trap_DP():
+            left = [0]*len(height)
+            for i in range(1, len(height)-1):
+                left[i] = max(left[i-1], height[i-1])
+            right = [0]*len(height)
+            for i in range(len(height)-2, 0, -1):
+                right[i] = max(right[i+1], height[i+1])
+            res = 0
+            for i in range(1, len(height)-1):
+                if min(left[i], right[i]) > height[i]:
+                    res += min(left[i], right[i])-height[i]
+            return res
+
+        def trap_window():
+            if len(height) <= 2: return 0
+            left, right = 0, len(height)-1
+            left_max, right_max = height[0], height[-1]
+            res = 0
+            while left < right:
+                if left_max < right_max:
+                    left += 1
+                    res += max(0, left_max-height[left])
+                    left_max = max(left_max, height[left])
+                else:
+                    right -= 1
+                    res += max(0, right_max-height[right])
+                    right_max = max(right_max, height[right])
+            return res
+            # AC 其实真没啥差别
+
+        return trap_DP()

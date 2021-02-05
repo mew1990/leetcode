@@ -84,3 +84,24 @@ class TwoPointer:
             # ... pop insert 引起的list结构维护实际耗时，比想象中O(N)乐观得多
 
         return medianSlidingWindow_faster()
+
+    def findMaxAverage(self, nums: List[int], k: int) -> float:
+        """ p643 滑动窗口
+        """
+        res = cur = sum(nums[:k])
+        for i in range(k, len(nums)):
+            cur += nums[i]-nums[i-k]
+            if cur > res: res = cur
+        return res/k
+
+    def equalSubstring(self, s: str, t: str, maxCost: int) -> int:
+        """ p1208
+        """
+        res, cost = 0, 0
+        for i in range(len(s)):
+            cost += abs(ord(s[i])-ord(t[i]))
+            if cost > maxCost:
+                cost -= abs(ord(s[i-res])-ord(t[i-res]))
+            else:
+                res += 1
+        return res
