@@ -110,6 +110,19 @@ class p40(unittest.TestCase):
                            [[1, 1, 6], [1, 2, 5], [1, 7], [2, 6]])
 
 
+class p41(unittest.TestCase):
+    method = Solution().firstMissingPositive
+
+    def _assert_equal(self, inputs, outputs):
+        self.assertEqual(self.method(inputs), outputs)
+
+    def test_case(self):
+        self._assert_equal([3, 4, -1, 1], 2)
+        self._assert_equal([], 1)
+        self._assert_equal([1], 2)
+        self._assert_equal([1, 1], 2)
+
+
 if __name__ == '__main__':
     p20().run()
     p21().run()

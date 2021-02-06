@@ -245,9 +245,9 @@ class Solution:
         # ... 无重复元素，无限制重复选取，无穷背包问题 （网上查 《背包九讲》非常经典）
         # ... 这里要所有解，如果用DFS也可以 dfs(index:int, sum_list:list)
         res = [[] for _ in range(target+1)]
-        res[0].append([]) # 初始化，没有元素
+        res[0].append([])  # 初始化，没有元素
         for i in candidates:
-            for j in range(i,  target+1): # 正序-无穷背包
+            for j in range(i, target+1):  # 正序-无穷背包
                 for k_list in res[j-i]:
                     res[j].append(k_list+[i])
         return res[target]
@@ -260,13 +260,24 @@ class Solution:
         res[0].append([])
         for k, v in a.items():
             for j in range(target, k-1, -1):  # 逆序-分组背包
-                for mv in range(1, v+1):   # 分组集合
+                for mv in range(1, v+1):  # 分组集合
                     if j-k*mv < 0: break
                     tmp = [k]*mv
                     for k_list in res[j-k*mv]:
                         res[j].append(k_list+tmp)
         return res[target]
 
+    def firstMissingPositive(self, nums: List[int]) -> int:
+        # p41 hard  math
+        # ... 有意思的面试题
+        for i in range(len(nums)):  # 将 nums[i] 放到 nums[nums[i]-1] 位置
+            while 0 <= nums[i] < len(nums) and nums[nums[i]-1] != nums[i]:
+                nums[nums[i]-1], nums[i] = nums[i], nums[nums[i]-1]
+        i = 0
+        while i < len(nums):
+            if nums[i] == i+1: i += 1
+            else: break
+        return i+1
 
     def trap(self, height: List[int]) -> int:
         # p42 hard 数学 双指针/DP

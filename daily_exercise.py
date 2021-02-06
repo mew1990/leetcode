@@ -105,3 +105,14 @@ class TwoPointer:
             else:
                 res += 1
         return res
+
+    def maxScore(self, cardPoints: List[int], k: int) -> int:
+        """ p1423
+        """
+        res, left, right = sum(cardPoints[:k]), k-1, len(cardPoints)-1
+        res_max = res
+        while left >= 0:
+            res += cardPoints[right]-cardPoints[left]
+            if res > res_max: res_max = res
+            left, right = left-1, right-1
+        return res_max
