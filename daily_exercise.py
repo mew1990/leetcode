@@ -7,10 +7,10 @@ from collections import *
 import bisect
 
 
-class TwoPointer:
+class Feb_2021:
     """
-    2月1日~
-    主题：双指针
+    主题：双指针 2月1日~2月6日
+    主题：栈和队列 2月8日~
     """
 
     def fairCandySwap(self, A: List[int], B: List[int]) -> List[int]:
@@ -116,3 +116,83 @@ class TwoPointer:
             if res > res_max: res_max = res
             left, right = left-1, right-1
         return res_max
+
+    def checkPossibility(self, nums: List[int]) -> bool:
+        """ p665
+        """
+        idx = [(i, i+1) for i in range(len(nums)-1) if nums[i] > nums[i+1]]
+        if len(idx) > 1: return False
+        if len(idx) == 0: return True
+
+        i, j = idx[0]
+        if i == 0 or j == len(nums)-1: return True
+        else:
+            if nums[i-1] <= nums[j] or nums[i] <= nums[j+1]: return True
+            else: return False
+
+    def maxTurbulenceSize(self, arr: List[int]) -> int:
+        """ p978 medium
+
+        状态转换，有点DP的意思
+        """
+        up, down = 1, 1
+        res = 1
+        for i in range(len(arr)-1):
+            if arr[i] > arr[i+1]: up, down = 1, up+1
+            elif arr[i] < arr[i+1]: up, down = down+1, 1
+            else: up, down = 1, 1
+            res = max(res, up, down)
+        return res
+
+    def subarraysWithKDistinct(self, A: List[int], K: int) -> int:
+        """ p992 hard 滑动窗口
+
+        解题：子数组不同数字刚好为K个，转化为最大（或最小）为K个的问题
+            faster 的写法值得看看
+        """
+
+        def subarraysWithKDistinct_faster():  # 通过案例，有意思
+            counter = {}
+            res = i = diffNum = leftForward = 0
+
+            for j in range(len(A)):
+                if A[j] not in counter:
+                    diffNum += 1
+                    counter[A[j]] = 1
+                else:
+                    counter[A[j]] += 1
+
+                if diffNum == K:
+                    if A[i-1] != A[j] and i > 0:  # leftForward置零的条件 good
+                        leftForward = 0
+                    while diffNum == K:
+                        if counter[A[i]] == 1:
+                            diffNum -= 1
+                            del counter[A[i]]
+                        else:
+                            counter[A[i]] -= 1
+                        i += 1
+                        leftForward += 1
+                res += leftForward
+
+            return res
+
+        def subarraysNotLessThanKDistinct(A, K):
+            dd = defaultdict(int)
+            tot, left, right = 0, 0, 0
+            res = 0
+            while right < len(A):
+                if dd[A[right]] == 0: tot += 1
+                dd[A[right]] += 1
+                right += 1
+                while tot > K:  # 这里是 >，当超出K个，left滑动
+                    dd[A[left]] -= 1
+                    if dd[A[left]] == 0:
+                        tot -= 1
+                    left += 1
+                # 计数，以right（包含）为右端，个数不超过K的子数组数量
+                # 所以每次right右移一次，计数一次
+                res += right-left+1  # 这里+1表示包括长度为0的子数组，但是K>=1，所以对题目结果没有影响。
+            return res
+
+        return subarraysNotLessThanKDistinct(A, K)-subarraysNotLessThanKDistinct(A, K-1)

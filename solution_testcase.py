@@ -4,6 +4,19 @@
 from .solution import Solution
 from .my_defs import *
 import unittest
+from pprint import pprint
+
+
+class Template(unittest.TestCase):
+    method = None
+
+    def _assert_equal(self, inputs, outputs):
+        if isinstance(inputs, tuple):
+            return self.assertEqual(outputs, self.method(*inputs))
+        return self.assertEqual(outputs, self.method(inputs))
+
+    def test_case(self):
+        raise NotImplemented
 
 
 class p20(unittest.TestCase):
@@ -121,6 +134,37 @@ class p41(unittest.TestCase):
         self._assert_equal([], 1)
         self._assert_equal([1], 2)
         self._assert_equal([1, 1], 2)
+
+
+class p84(Template):
+    method = Solution().largestRectangleArea
+
+    def test_case(self):
+        self._assert_equal([2, 1, 5, 6, 2, 3], 10)
+
+
+class p43(Template):
+    method = Solution().multiply
+
+    def test_case(self):
+        self._assert_equal(('112', '1111'), '124432')
+
+
+class p44(Template):
+    method = Solution().isMatch
+
+    def test_case(self):
+        s = "babbbbaabababaabbababaababaabbaabababbaaababbababaaaaaabbabaaaabababbabbababbbaaaababbbabbbbbbbbbbaabbb"
+        p = "b**bb**a**bba*b**a*bbb**aba***babbb*aa****aabb*bbb***a"
+        self._assert_equal((s, p), False)
+        self._assert_equal(('aabb', '*a*b'), True)
+
+
+class p47(Template):
+    method = Solution().permuteUnique
+
+    def test_case(self):
+        pprint(self.method([0, 0, 9, 0, 1]))
 
 
 if __name__ == '__main__':

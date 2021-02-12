@@ -5,6 +5,7 @@ from .my_defs import *
 from typing import *
 from bisect import bisect_left, bisect
 import collections
+import itertools
 
 
 class Solution:
@@ -313,3 +314,184 @@ class Solution:
             # AC 其实真没啥差别
 
         return trap_DP()
+
+    def multiply(self, num1: str, num2: str) -> str:
+        """ p43 medium math
+        算法-- 面试+
+
+        给定两个以字符串形式表示的非负整数 num1 和 num2，返回 num1 和 num2 的乘积，它们的乘积也表示为字符串形式。
+        """
+
+        class myInt:
+            def __init__(self, num: str, max_len=250):
+                self._max_len = max_len
+                self._num = [0]*max_len
+                for i, ni in enumerate(reversed(num)):
+                    self._num[i] += int(ni)
+
+            def __str__(self):
+                return ''.join(map(str, reversed(self._num))).lstrip('0') or '0'
+
+            def __mul__(self, other):
+                res = myInt('')
+                for i in range(self._max_len):
+                    tag = 0
+                    for j in range(other._max_len):
+                        if i+j < self._max_len:
+                            res._num[i+j] += self._num[i]*other._num[j]+tag
+                            tag, res._num[i+j] = res._num[i+j]//10, res._num[i+j]%10
+                        else: break
+                return res
+
+            def __add__(self, other):
+                res = myInt('')
+                tag = 0
+                for i in range(self._max_len):
+                    res._num[i] = self._num[i]+other._num[i]+tag
+                    tag, res._num[i] = res._num[i]//10, res._num[i]%10
+                return res
+
+        return str(myInt(num1)*myInt(num2))
+
+    def isMatch(self, s: str, p: str) -> bool:
+        """ p44 hard 递归 DP
+
+        通配符匹配
+        """
+
+        def isMatch_unaccepted():
+            while '**' in p:
+                p = p.replace('**', '*')
+
+            def dfs(s, p):
+                if p == '': return s == ''
+                if p[0] == '*':
+                    idx = 0
+                    while idx <= len(s):
+                        # 保证每次迭代p减少
+                        if dfs(s[idx:], p[1:]): return True
+                        idx += 1
+                    return False
+                elif p[0] == '?':
+                    return len(s) > 0 and dfs(s[1:], p[1:])
+                else:
+                    return len(s) > 0 and s[0] == p[0] and dfs(s[1:], p[1:])
+
+            return dfs(s, p)
+            # 会超时
+
+        dp = [[False]*(len(s)+1) for _ in range(len(p)+1)]
+        dp[0][0] = True
+        for i in range(1, len(p)+1):  # 这一段初始化很重要，表示p开头是'*'的与s开头为''匹配。
+            if p[i-1] == '*':
+                dp[i][0] = dp[i-1][0]
+        for i in range(1, len(p)+1):
+            for j in range(1, len(s)+1):
+                if p[i-1] == '*':
+                    dp[i][j] = dp[i][j-1] or dp[i-1][j]
+                if p[i-1] == s[j-1] or p[i-1] == '?':
+                    dp[i][j] = dp[i-1][j-1]
+        return dp[-1][-1]
+
+    def jump(self, nums: List[int]) -> int:
+        """ p45 hard 贪心
+        """
+        step = end = max_pos = 0
+        for i in range(len(nums)-1):  # 最后一格不关心
+            max_pos = max(max_pos, i+nums[i])
+            if i == end:
+                end = max_pos
+                step += 1
+        return step
+
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        """ p46 medium 递归
+        面试++
+
+        题解：也可以用itertools.permutations 了解下这个函数的机制
+        """
+
+        def dfs(idx):
+            if idx == len(nums):
+                res.append(nums[:])
+            else:
+                for i in range(idx, len(nums)):
+                    nums[i], nums[idx] = nums[idx], nums[i]
+                    dfs(idx+1)
+                    nums[i], nums[idx] = nums[idx], nums[i]
+
+        res = []
+        dfs(0)
+        return res
+
+    def permuteUnique(self, nums: List[int]) -> List[List[int]]:
+        """ p47 medium 递归
+        算法+
+
+        题解：根据递归的方法，分为需要回溯的递归（递归过程数组共享，则必须记录使用情况，并且末尾还原）
+                           和不需要回溯的递归（递归过程数组不共享，则不用担心回溯时数组的变动）
+
+        其他解法：
+        1. 数组循环：每增加一个就循环一次，生成len个新数组，然后重复（不需要回溯）；
+                    每增加一位就循环后面的数组，生成len-idx个新数组，然后重复（不需要回溯）
+        2. 数据标记：需要回溯的情景（或者连同数据循环，用不回溯的方法）
+        3. 结合有序数组
+        """
+
+        def dfs(nums, idx):
+            # print(idx, nums)
+            if idx == len(nums)-1:
+                res.append(nums)
+            else:
+                dfs(nums.copy(), idx+1)  # 原始的
+                for i in range(idx, len(nums)):
+                    if nums[i] != nums[idx]:  # 如果不相等，必定是idx位置数值变大的序列
+                        nums[i], nums[idx] = nums[idx], nums[i]
+                        dfs(nums.copy(), idx+1)
+
+        nums.sort()
+        res = []
+        dfs(nums, 0)
+        return res
+
+    def largestRectangleArea(self, heights: List[int]) -> int:
+        """ p84 hard 栈
+        算法++
+
+        非常有意思的一道题，单调栈
+        left 和 right 定位，以及末尾的处理（入栈后循环结束）
+
+        """
+
+        def largestRectangleArea_faster():
+            heights.append(0)  # 做题可以这样简单处理，实际中并不好
+            stack = [-1]  # 比较好的处理
+            ans = 0
+            for i in range(len(heights)):
+                while heights[i] < heights[stack[-1]]:
+                    h = heights[stack.pop()]
+                    w = i-stack[-1]-1
+                    ans = max(h*w, ans)
+                stack.append(i)
+
+        if len(heights) == 0: return 0
+        stack = []
+        res = 0
+        MIN_HEIGHT = 0
+        for i in range(len(heights)+1):
+            cur = heights[i] if i < len(heights) else MIN_HEIGHT
+            while stack and cur <= heights[stack[-1]]:  # = 的情景，左边高度会失真，右边高度会正确计算的。
+                h = heights[stack.pop()]  # 当前index对应的高度左右扩展
+                left = stack[-1]+1 if stack else (-1)+1
+                right = i
+                # print(left, right, h, stack)
+                area = (right-left)*h
+                res = max(res, area)
+            stack.append(i)
+
+        return res
+
+    def calculate(self, s: str) -> int:
+        """ p224 hard 栈
+        """
+        pass
