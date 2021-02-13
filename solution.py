@@ -454,6 +454,54 @@ class Solution:
         dfs(nums, 0)
         return res
 
+    def rotate(self, matrix: List[List[int]]) -> None:
+        """ P48 easy 数学
+        面试++ 算法--
+
+        题解： 矩阵旋转，寻找位置定位(i, j)->(j, n-1-i)
+            先转置后轴对称？
+        """
+        n = len(matrix)
+        for i in range(n):
+            for j in range(i+1, n):
+                matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+        for i in range(n):
+            for j in range(n//2):
+                matrix[i][j], matrix[i][n-1-j] = matrix[i][n-1-j], matrix[i][j]
+
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        """ p49 medium 排序 编码
+        面试+
+
+        题解：对字符串编码成key
+
+        Input: strs = ["eat","tea","tan","ate","nat","bat"]
+        Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
+        """
+        from collections import defaultdict
+        res = defaultdict(list)
+        for i in strs:
+            res[''.join(sorted(i))].append(i)
+        return list(res.values())
+
+    def myPow(self, x: float, n: int) -> float:
+        """ p50 medium
+        面试+ 算法+
+
+        题解：计算pow(x, n), 字宽思想
+        """
+        res = 1
+        sign = 1 if n > 0 else -1
+        n *= sign
+        while n > 0:
+            if n%2 == 1:
+                res *= x
+            n >>= 1  # n是整数
+            x *= x
+        return res if sign == 1 else 1/res
+
+
+
     def largestRectangleArea(self, heights: List[int]) -> int:
         """ p84 hard 栈
         算法++

@@ -196,3 +196,33 @@ class Feb_2021:
             return res
 
         return subarraysNotLessThanKDistinct(A, K)-subarraysNotLessThanKDistinct(A, K-1)
+
+    def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
+        """ p239 hard 队列
+        算法+++
+
+        题解：随着窗口滑动，队列记录长度为k的窗口内的单调递减序列
+
+        输入：nums = [1,3,-1,-3,5,3,6,7], k = 3
+        输出：[3,3,5,5,6,7]
+        解释：
+        滑动窗口的位置                最大值
+        ---------------               -----
+        [1  3  -1] -3  5  3  6  7       3
+         1 [3  -1  -3] 5  3  6  7       3
+        """
+        if k == 1: return nums
+        from collections import deque
+        window = deque([k-1])
+        for i in range(k-2, -1, -1):
+            if nums[i] >= nums[window[0]]:
+                window.appendleft(i)
+        res = [nums[window[0]]]
+        for i in range(k, len(nums)):
+            while window and nums[window[-1]] < nums[i]:  # 这里window可能变空
+                window.pop()
+            window.append(i)
+            if window[-1]-window[0] >= k:
+                window.popleft()
+            res.append(nums[window[0]])
+        return res
