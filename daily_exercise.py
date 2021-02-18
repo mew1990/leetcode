@@ -226,3 +226,27 @@ class Feb_2021:
                 window.popleft()
             res.append(nums[window[0]])
         return res
+
+    def minKBitFlips(self, A: List[int], K: int) -> int:
+        """ p995 hard 滑动窗口
+        算法++
+
+        输入：A = [0,0,0,1,0,1,1,0], K = 3
+        输出：3
+        解释：
+        翻转 A[0],A[1],A[2]: A变成 [1,1,1,1,0,1,1,0]
+        翻转 A[4],A[5],A[6]: A变成 [1,1,1,1,1,0,0,0]
+        翻转 A[5],A[6],A[7]: A变成 [1,1,1,1,1,1,1,1]
+
+        题解：差分数组
+        """
+        n = len(A)
+        diff = [0]*(n+1)
+        cur = 0
+        for i in range(n):
+            cur += diff[i]
+            if A[i]^(cur&1) == 0:  # 需要翻转 [0^2==2, 0^(2&1)==0]
+                if i > n-K: return -1
+                cur += 1
+                diff[i+K] = -1  # 差分数组，i+K位置翻转次数减一
+        return diff.count(-1)
