@@ -3,6 +3,170 @@
 
 # 所有题目来自 leetcode，仅供学习用途
 from typing import *
+from collections import *
+from itertools import *
+from functools import *
+import math
+import bisect
+
+
+def interesting(func):
+    def wrap(*args, **kwargs):
+        print('# this program is Interesting!')
+        return func(*args, **kwargs)
+
+    return wrap
+
+
+class Contest_Weekly_46:
+    def longestNiceSubstring(self, s: str) -> str:
+        """ 5668. 最长的美好子字符串
+
+        s = "YazaAay"
+        输出："aAa"
+        解释："aAa" 是一个美好字符串，因为这个子串中仅含一种字母，其小写形式 'a' 和大写形式 'A' 也同时出现了。
+        "aAa" 是最长的美好子字符串。
+
+        输入：s = "dDzeE"
+        输出："dD"
+        解释："dD" 和 "eE" 都是最长美好子字符串。由于有多个美好子字符串，返回 "dD" ，因为它出现得最早。
+
+        AC
+            用滑动窗口，但是比赛字符串长度不超过100，很小，就直接用遍历了
+
+        """
+
+        def _check(s):
+            for i in s:
+                if i.swapcase() not in s:
+                    return False
+            return True
+
+        for i in range(len(s), 1, -1):
+            for j in range(len(s)-i):
+                if _check(s[j:j+i]): return s[j:j+i]
+        return ''
+
+    def canChoose(self, groups: List[List[int]], nums: List[int]) -> bool:
+        """ 5669. 通过连接另一个数组的子数组得到一个数组
+
+        AC
+            数据量不大，直接模拟，python取数组是方便
+        """
+        idx, n = 0, len(nums)
+        for i in range(len(groups)):
+            while idx < len(nums):
+                if groups[i] == nums[idx:idx+len(groups[i])]:
+                    idx += len(groups[i])
+                    break
+                idx += 1
+            else:
+                return False
+        return True
+
+    def highestPeak(self, isWater: List[List[int]]) -> List[List[int]]:
+        """ 5671. 地图中的最高点
+
+        AC + Error 2
+            思路清晰，用队列
+            error1初始化弄错了，二位矩阵res初始化维度不对，测试数据都是方阵
+            error2对要扩展的点先入队列，出队后赋值，会造成重复入队列，所以代码复杂，超时了。
+            如果改成入队前赋值，则代码简单，队列变短，就ok了。
+
+        """
+        dd = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+        m, n = len(isWater), len(isWater[0])
+        res = [[-1]*n for _ in range(m)]
+        q = deque()
+
+        for i in range(m):
+            for j in range(n):
+                if isWater[i][j] == 1:
+                    q.append([i, j])
+                    res[i][j] = 0
+        while q:
+            i, j = q.popleft()
+            for dx, dy in dd:
+                ii, jj = i+dx, j+dy
+                if 0 <= ii < m and 0 <= jj < n and res[ii][jj] == -1:
+                    res[ii][jj] = res[i][j]+1
+                    q.append([ii, jj])
+        return res
+
+    @interesting
+    def getCoprimes(self, nums: List[int], edges: List[List[int]]) -> List[int]:
+        """ 5670. 互质树
+
+        无环连通无向图（n个节点n-1条边的树），求每个节点的互质的最大根节点。
+
+        Fail
+            用list记录每个节点的父亲，0是根节点，其他节点并不确定（error1没有建树）
+            对于树的处理不熟练，建树用邻接矩阵才行（error2超时）
+            虽然算法没问题了，但是n大到1e5，所以计算互质的根节点直接变例，复杂度接近N*N（error3超时）
+                >>> def getCoprimes(self, nums: List[int], edges: List[List[int]]) -> List[int]:
+                >>> @lru_cache
+                >>> def gcd(a, b):
+                >>>     return a if b == 0 else gcd(b, a%b)
+                >>>
+                >>> n = len(nums)
+                >>> parent = [-2]*n
+                >>> parent[0] = -1
+                >>> dd = defaultdict(list)  # 建树
+                >>> for i, j in edges:
+                >>>     dd[i].append(j)
+                >>>     dd[j].append(i)
+                >>> que = deque([0])  # 检查父节点，构建拓扑结构
+                >>> while que:
+                >>>     x = que.popleft()
+                >>>     for i in dd[x]:
+                >>>         if parent[i] == -2:
+                >>>             que.append(i)
+                >>>             parent[i] = x
+                >>>
+                >>> ans = [-1]*n
+                >>> for i in range(n):
+                >>>     p = parent[i]
+                >>>     while True:
+                >>>         if p == -1 or gcd(nums[i], nums[p]) == 1: # 追溯祖先节点
+                >>>             ans[i] = p
+                >>>             break
+                >>>         p = parent[p]
+                >>> return ans
+
+            参考解答：
+                互质节点对的预处理（因为value在50以内），所以记录value下手，dfs算法记录每个value最近的祖先节点位置。
+                这样，将祖先节点个数压缩成最多50个。
+
+        """
+        n = len(nums)
+        dd = defaultdict(list)  # 关系
+        for i, j in edges:
+            dd[i].append(j)
+            dd[j].append(i)
+
+        coprime = [[] for _ in range(51)]
+        for i in range(1, 51):
+            for j in range(i, 51):
+                if math.gcd(i, j) == 1:
+                    coprime[i].append(j)
+                    coprime[j].append(i)
+        dep = [-1]*51  # dep[i]记录最近的数值为i的深度（配合栈stack使用），因为祖先最近，深度越大，但是编号不确定
+        stack = []
+        ans = [-1]*n  # ans[i]记录互质的最近的祖先编号
+
+        def dfs(idx, val, parent):
+            depth = max(dep[cop] for cop in coprime[val])  # 取深度最大的node对应的编号
+            ans[idx] = stack[depth] if depth > -1 else -1  # 如果-1 表示没有互质的祖先
+            tmp, dep[val] = dep[val], len(stack)  # 然后，更新最近祖先表dep
+            stack.append(idx)
+            for i in dd[idx]:
+                if i != parent:
+                    dfs(i, nums[i], idx)  # 树结构叶子节点就不会再扩展了
+            dep[val] = tmp  # 回溯
+            stack.pop()
+
+        dfs(0, nums[0], -1)
+        return ans
 
 
 class Contest_228:
@@ -210,6 +374,7 @@ class Contest_227:
         if word1 > word2: return word1[0]+self.largestMerge(word1[1:], word2)
         else: return word2[0]+self.largestMerge(word1, word2[1:])
 
+    @interesting
     def minAbsDifference(self, nums: List[int], goal: int) -> int:
         """ 1755. 最接近目标值的子序列和
 
@@ -299,3 +464,162 @@ class Contest_227:
             else:
                 i += 1
         return res
+
+
+class Contest_Weekly_45:
+    def sumOfUnique(self, nums: List[int]) -> int:
+        """ 1748. 唯一元素的和
+
+        给你一个整数数组 nums 。数组中唯一元素是那些只出现 恰好一次 的元素。
+        请你返回 nums 中唯一元素的 和 。
+
+        AC
+        """
+        return sum(i for i, v in Counter(nums).items() if v == 1)
+
+    def maxAbsoluteSum(self, nums: List[int]) -> int:
+        """ 1749. 任意子数组和的绝对值的最大值
+
+        AC
+            贪心，数学方法，觉得应该对的。赛后了解下`前缀和`，以及如何求没有绝对值的最大值和最小值。
+            >>> max(accumulate(nums, initial=0)) - min(accumulate(nums, initial=0))
+        """
+        if len(nums) == 0: return 0
+        a = [0]
+        for i in nums:
+            a.append(a[-1]+i)
+        return abs(max(a)-min(a))
+
+    def minimumLength(self, s: str) -> int:
+        """ 1750. 删除字符串两端相同字符后的最短长度
+
+        AC
+            模拟题
+        """
+        if len(s) <= 1: return len(s)
+        left, right = 0, len(s)-1
+        while s[left] == s[right] and left < right:
+            a = s[left]
+            while s[left] == a:
+                left += 1
+                if left > right: return 0
+            while s[right] == a:
+                right -= 1
+                if right < left: return 0
+        # print(left, right)
+        return right-left+1
+
+    @interesting
+    def maxValue(self, events: List[List[int]], k: int) -> int:
+        """ 1751. 最多可以参加的会议数目 II
+
+        给你一个 events 数组，其中 events[i] = [startDayi, endDayi, valuei] ，表示第 i 个会议在 startDayi 天开始，
+        第 endDayi 天结束，如果你参加这个会议，你能得到价值 valuei 。同时给你一个整数 k 表示你能参加的最多会议数目。
+        你同一时间只能参加一个会议。如果你选择参加某个会议，那么你必须 完整 地参加完这个会议。
+        会议结束日期是包含在会议内的，也就是说你不能同时参加一个开始日期与另一个结束日期相同的两个会议。
+        请你返回能得到的会议价值 最大和 。
+
+        Fail
+            考虑背包，根据结束日期，endday[i]描述第i天截止得到的价值最大和。但是10e6的背包量，超时了
+            >>> n = len(events)
+            >>> events.sort(key=lambda x:x[1])
+            >>> res = 0
+            >>> endday = {-1:[0]*(k+1)}
+            >>> for st, en, val in events:
+            >>>     if en in endday: tmp = endday[en]
+            >>>     else: tmp = [0]*(k+1)
+            >>>     for i in endday:
+            >>>         if i < st:
+            >>>             for j in range(1, k+1):
+            >>>                 if endday[i][j-1]+val > tmp[j]:
+            >>>                     tmp[j] = endday[i][j-1]+val
+            >>>     endday[en] = tmp
+            >>> return max(max(v) for v in endday.values())
+            赛后来看，dp时只需要定位到最后一格i<st，执行一遍O(k)，就可以了。
+            而定位，用遍历也不能AC，最好用二分查找。
+
+        """
+        n = len(events)
+        events.sort(key=lambda x:x[1])
+        # dp[i][j]表示第i天截至，参加k个项目的最大价值。dp[][j]是单调非降的。
+        dp = [[0]*(k+1) for _ in range(n)]+[[0]+[-0xfffffff]*k]  # 哨兵
+        endday = [i[1] for i in events]
+        for i, (st, en, val) in enumerate(events):
+            idx = bisect.bisect_left(endday, st)-1  # 比插入left位置小1，如果是0，则对应-1哨兵
+            for j in range(k, 0, -1):  # 这里要倒序，因为是0-1背包
+                dp[i][j] = max(dp[idx][j-1]+val, dp[i-1][j])
+        # print(dp)
+        return max(dp[-2])  # 倒数第二个，不超过k个
+
+
+class Solution:
+    def mergeAlternately(self, word1: str, word2: str) -> str:
+        """ 5685. 交替合并字符串
+        AC
+        """
+        res = []
+        for i, j in zip(word1, word2):
+            res.append(i)
+            res.append(j)
+        res.append(word1[len(word2):])
+        res.append(word2[len(word1):])
+        return ''.join(res)
+
+    def minOperations(self, boxes: str) -> List[int]:
+        """ 5686. 移动所有球到每个盒子所需的最小操作数
+
+        AC
+            一开始代码考虑滑动窗口，但是测试没写对，看到很多人提交了，就还是用暴力法试试了。
+            回头考虑窗口的话，是需要记录i位置左边的1的数量，和右边的1的数量，然后计算一遍总数，之后差分。
+        """
+        a = [i for i in range(len(boxes)) if boxes[i] == '1']
+        res = [0]*len(boxes)
+        for i in range(len(boxes)):
+            res[i] = sum(abs(i-j) for j in a)
+        return res
+
+    def maximumScore(self, nums: List[int], multipliers: List[int]) -> int:
+        """ 5687. 执行乘法运算的最大分数
+
+        AC + Error2
+            dfs超时，所以重写dp，dp下标有点麻烦，但是测试案例过了，基本就没问题了。
+        """
+        # # dfs 算法，超时了
+        # res = -100000000000
+        # def dfs(lst, mul, score):
+        #     nonlocal res
+        #     if not mul:
+        #         res = max(res, score)
+        #     else:
+        #         dfs(lst[1:], mul[1:], score+lst[0]*mul[0])
+        #         dfs(lst[:-1], mul[1:], score+lst[-1]*mul[0])
+        #
+        # dfs(nums, multipliers, 0)
+        # return res
+
+        # # 动态规划的方法，还是写一下状态方程再编码比较好
+        n, m = len(nums), len(multipliers)
+        dp = [[0]*(m+1) for _ in range(m+1)]  # dp[i][j] 表示左边取i个，右边取j个
+        for dep in range(1, m+1):
+            dp[dep][0] = dp[dep-1][0]+multipliers[dep-1]*nums[dep-1]
+            dp[0][dep] = dp[0][dep-1]+multipliers[dep-1]*nums[-dep]
+            for i in range(1, dep):
+                r = dep-i
+                dp[i][r] = max(dp[i][r-1]+multipliers[dep-1]*nums[-r],
+                               dp[i-1][r]+multipliers[dep-1]*nums[i-1])
+        return max(dp[i][m-i] for i in range(m))
+
+    def longestPalindrome(self, word1: str, word2: str) -> int:
+        """ 5688. 由子序列构造的最长回文串的长度
+
+        Fail
+            想想用dp，但是比赛时放弃了。
+
+        """
+        n1, n2 = len(word1), len(word2)
+        dp = [[]]
+
+
+if __name__ == '__main__':
+    res = Contest_Weekly_46().getCoprimes([5, 6, 10, 2, 3, 6, 15], [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6]])
+    print(res)

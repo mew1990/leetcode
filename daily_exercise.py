@@ -250,3 +250,59 @@ class Feb_2021:
                 cur += 1
                 diff[i+K] = -1  # 差分数组，i+K位置翻转次数减一
         return diff.count(-1)
+
+    def longestOnes(self, A: List[int], K: int) -> int:
+        """ p1004 medium 滑动窗口
+        算法+++
+
+        题解：滑动窗口，left搭配if使用，窗口不会变小。如果是while，更符合逻辑，但是要配合max使用
+        """
+        left, right, cnt = 0, 0, 0
+        for right in range(len(A)):
+            if A[right] == 0:
+                cnt += 1
+            if cnt > K:  # 如果是while，要记录max。
+                if A[left] == 0:
+                    cnt -= 1
+                left += 1
+        return right-left+1
+
+    def longestSubarray(self, nums: List[int], limit: int) -> int:
+        """  p1438 medium 滑动窗口
+        算法++
+
+        题解：【绝对差不超过限制的最长连续子数组】
+        """
+        a = deque()
+        b = deque()
+        left = 0
+        for right in range(len(nums)):
+            while a and a[-1] > nums[right]:
+                a.pop()
+            a.append(nums[right])
+            while b and b[-1] < nums[right]:
+                b.pop()
+            b.append(nums[right])
+            if b[0]-a[0] > limit:
+                if nums[left] == a[0]:
+                    a.popleft()
+                if nums[left] == b[0]:
+                    b.popleft()
+                left += 1
+        return right-left+1
+
+    def maxSatisfied(self, customers: List[int], grumpy: List[int], X: int) -> int:
+        """ p1052 medium 滑动窗口
+        算法++
+
+        题解：【爱生气的书店老板】，滑动固定窗口，计算差分
+        """
+        n = len(customers)
+        ans = sum(customers[i] for i in range(n) if grumpy[i] == 0)
+        cur = sum(customers[i] for i in range(X) if grumpy[i] == 1)
+        cur_max = cur
+        for right in range(X, n):
+            cur += customers[right] if grumpy[right] == 1 else 0
+            cur -= customers[right-X] if grumpy[right-X] == 1 else 0
+            cur_max = max(cur, cur_max)
+        return ans+cur_max

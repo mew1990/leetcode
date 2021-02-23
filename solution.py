@@ -500,7 +500,170 @@ class Solution:
             x *= x
         return res if sign == 1 else 1/res
 
+    def solveNQueens(self, n: int) -> List[List[str]]:
+        """ p51 hard DFS
 
+        题解：8皇后问题，硬搜，位运算编码
+            行编码0~N-1，列编码0~N-1，对角编码i-j(-N+1~N-1)，对角编码i+j(0~2N-2)
+        """
+
+        def dfs(i):
+            if i == n: res.append(['.'*j+'Q'+'.'*(n-j-1) for j in cur])
+            else:
+                for j in range(n):
+                    if row[i] and col[j] and diag[i-j] and diag2[i+j]:
+                        row[i] = col[j] = diag[i-j] = diag2[i+j] = False
+                        cur.append(j)
+                        dfs(i+1)
+                        cur.pop()
+                        row[i] = col[j] = diag[i-j] = diag2[i+j] = True
+
+        res = []
+        cur = []
+        row = [True]*n
+        col = [True]*n
+        diag = [True]*(2*n-1)
+        diag2 = [True]*(2*n-1)
+        dfs(0)
+
+        return res
+
+    def totalNQueens(self, n: int) -> int:
+        """ p52 hard DFS
+
+        题解：同p51， pass
+        """
+        pass
+
+    def maxSubArray(self, nums: List[int]) -> int:
+        """ p53 medium 滑动窗口 线段树
+
+        题解：可以用滑动窗口做，这里写一个线段树的版本（掌握线段树很重要）
+        """
+        raise NotImplemented
+
+    def spiralOrder(self, matrix: List[List[int]]) -> List[int]:
+        """ p54 medium 模拟
+
+        题解：【螺旋矩阵】模拟转向，比较喜欢这个解法
+        """
+        res = []
+        i, j = 0, 0
+        m, n = len(matrix), len(matrix[0])
+        di, dj = 0, 1
+        for _ in range(m*n):
+            res.append(matrix[i][j])
+            matrix[i][j] = 0xffff
+            if not (0 <= i+di < m and 0 <= j+dj < n) or matrix[i+di][j+dj] == 0xffff:
+                di, dj = dj, -di
+            i, j = i+di, j+dj
+        return res
+
+    def canJump(self, nums: List[int]) -> bool:
+        """ p55 medium 滑动窗口
+
+        题解：【跳跃游戏】滑动窗口方法（此方法顺便可以求出跳几步）
+            比较讨巧的方法，是倒序判断是否可以到达末尾端点，一直倒推到起点。
+        """
+        left, right = 0, 0+nums[0]
+        while left < right and right < len(nums)-1:  # 可以继续跳，并且还没跳到最后
+            left, right = right, max(i+nums[i] for i in range(left, right+1))
+        return right >= len(nums)-1
+
+    def merge(self, intervals: List[List[int]]) -> List[List[int]]:
+        """ p56 meidum 排序 模拟
+
+        题解：【合并区间】没啥营养
+        """
+        intervals.sort()
+        res = []
+        si, sj = intervals[0]
+        for i, j in intervals[1:]:
+            if sj >= i:
+                sj = j if j > sj else sj
+            else:
+                res.append((si, sj))
+                si, sj = i, j
+        res.append([si, sj])
+        return res
+
+    def insert(self, intervals: List[List[int]], newInterval: List[int]) -> List[List[int]]:
+        """ p57 medium 模拟
+
+        题解：【插入区间】
+        """
+        return self.merge(intervals+[newInterval])
+
+    def lengthOfLastWord(self, s: str) -> int:
+        """ p58 easy 字符串处理
+
+        题解：最后一个单词的长度
+        """
+        return s.rstrip().rsplit(' ', maxsplit=1)[-1].__len__()
+
+    def generateMatrix(self, n: int) -> List[List[int]]:
+        """ p59 medium 数学
+
+        题解：【螺旋矩阵II】，同 p54
+        """
+        arr = [[0]*n for _ in range(n)]
+        i = j = 0
+        cur = 1
+        dx, dy = 0, 1
+        while cur <= n*n:
+            arr[i][j] = cur
+            cur += 1
+            if i+dx < 0 or i+dx >= n or j+dy < 0 or j+dy >= n or arr[i+dx][j+dy] > 0:
+                dx, dy = dy, -dx
+            i, j = i+dx, j+dy
+        return arr
+
+    def getPermutation(self, n: int, k: int) -> str:
+        """ p60 hard 排序
+        算法++
+
+        题解：【排序序列】
+            n=3, 共6种，123, 132, 213, 231, 312, 321
+            k=5, divmod(k, 2!)= 2, 1
+            divmod(1, 1!) = 1, 0
+            因此序列为(2, 1, 0) 最后一位必定为0
+            对应的序列为'123'中的3, '12'中的2, '1'中的1
+        """
+
+        def nfactorial(x):
+            return 1 if x <= 1 else x*nfactorial(x-1)
+
+        def _getPermutation(a: list, k: int) -> list:
+            res = []
+            while a:
+                idx, k = divmod(k, nfactorial(len(a)-1))
+                res.append(a.pop(idx))
+            return res
+
+        return ''.join(_getPermutation([str(i+1) for i in range(n)], k-1))
+
+    def rotateRight(self, head: ListNode, k: int) -> ListNode:
+        """ p61
+        面试++
+
+        题解：【旋转链表】
+        """
+
+        def _len(head):
+            return 0 if head is None else 1+_len(head.next)
+
+        def _rotate_right(head, pre_tail, tail):
+            new_head = pre_tail.next
+            pre_tail.next = None
+            tail.next = head
+            return new_head
+
+        def _get_kth_node(head, k):
+            return head if k == 0 else _get_kth_node(head.next, k-1)
+
+        n = _len(head)
+        if n < 2 or k%n == 0: return head
+        return _rotate_right(head, _get_kth_node(head, n-1-k%n), _get_kth_node(head, n-1))
 
     def largestRectangleArea(self, heights: List[int]) -> int:
         """ p84 hard 栈
@@ -538,8 +701,3 @@ class Solution:
             stack.append(i)
 
         return res
-
-    def calculate(self, s: str) -> int:
-        """ p224 hard 栈
-        """
-        pass
