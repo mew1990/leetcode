@@ -18,6 +18,87 @@ def interesting(func):
     return wrap
 
 
+class Contest_229:
+    def mergeAlternately(self, word1: str, word2: str) -> str:
+        """ 5685. 交替合并字符串
+        AC
+        """
+        res = []
+        for i, j in zip(word1, word2):
+            res.append(i)
+            res.append(j)
+        res.append(word1[len(word2):])
+        res.append(word2[len(word1):])
+        return ''.join(res)
+
+    def minOperations(self, boxes: str) -> List[int]:
+        """ 5686. 移动所有球到每个盒子所需的最小操作数
+
+        AC
+            一开始代码考虑滑动窗口，但是测试没写对，看到很多人提交了，就还是用暴力法试试了。
+            回头考虑窗口的话，是需要记录i位置左边的1的数量，和右边的1的数量，然后计算一遍总数，之后差分。
+        """
+        a = [i for i in range(len(boxes)) if boxes[i] == '1']
+        res = [0]*len(boxes)
+        for i in range(len(boxes)):
+            res[i] = sum(abs(i-j) for j in a)
+        return res
+
+    def maximumScore(self, nums: List[int], multipliers: List[int]) -> int:
+        """ 5687. 执行乘法运算的最大分数
+
+        AC + Error2
+            dfs超时，所以重写dp，dp下标有点麻烦，但是测试案例过了，基本就没问题了。
+        """
+        # # dfs 算法，超时了
+        # res = -100000000000
+        # def dfs(lst, mul, score):
+        #     nonlocal res
+        #     if not mul:
+        #         res = max(res, score)
+        #     else:
+        #         dfs(lst[1:], mul[1:], score+lst[0]*mul[0])
+        #         dfs(lst[:-1], mul[1:], score+lst[-1]*mul[0])
+        #
+        # dfs(nums, multipliers, 0)
+        # return res
+
+        # # 动态规划的方法，还是写一下状态方程再编码比较好
+        n, m = len(nums), len(multipliers)
+        dp = [[0]*(m+1) for _ in range(m+1)]  # dp[i][j] 表示左边取i个，右边取j个
+        for dep in range(1, m+1):
+            dp[dep][0] = dp[dep-1][0]+multipliers[dep-1]*nums[dep-1]
+            dp[0][dep] = dp[0][dep-1]+multipliers[dep-1]*nums[-dep]
+            for i in range(1, dep):
+                r = dep-i
+                dp[i][r] = max(dp[i][r-1]+multipliers[dep-1]*nums[-r],
+                               dp[i-1][r]+multipliers[dep-1]*nums[i-1])
+        return max(dp[i][m-i] for i in range(m))
+
+    def longestPalindrome(self, word1: str, word2: str) -> int:
+        """ 5688. 由子序列构造的最长回文串的长度
+
+        Fail
+            想想用dp，但是比赛时放弃了。
+
+        """
+        n1, n2 = len(word1), len(word2)
+        n = n1+n2
+        word = word1+word2
+        res = 0
+        dp = [[0]*n for _ in range(n)]
+        for i in range(n): dp[i][i] = 1
+        for i in range(1, n):
+            for j in range(i-1, -1, -1):
+                if word[i] == word[j]:
+                    dp[j][i] = dp[j+1][i-1]+2
+                    if j < n1 <= i:
+                        res = max(res, dp[j][i])
+                else:
+                    dp[j][i] = max(dp[j+1][i], dp[j][i-1])
+        return res
+
+
 class Contest_Weekly_46:
     def longestNiceSubstring(self, s: str) -> str:
         """ 5668. 最长的美好子字符串
@@ -552,74 +633,8 @@ class Contest_Weekly_45:
         return max(dp[-2])  # 倒数第二个，不超过k个
 
 
-class Solution:
-    def mergeAlternately(self, word1: str, word2: str) -> str:
-        """ 5685. 交替合并字符串
-        AC
-        """
-        res = []
-        for i, j in zip(word1, word2):
-            res.append(i)
-            res.append(j)
-        res.append(word1[len(word2):])
-        res.append(word2[len(word1):])
-        return ''.join(res)
-
-    def minOperations(self, boxes: str) -> List[int]:
-        """ 5686. 移动所有球到每个盒子所需的最小操作数
-
-        AC
-            一开始代码考虑滑动窗口，但是测试没写对，看到很多人提交了，就还是用暴力法试试了。
-            回头考虑窗口的话，是需要记录i位置左边的1的数量，和右边的1的数量，然后计算一遍总数，之后差分。
-        """
-        a = [i for i in range(len(boxes)) if boxes[i] == '1']
-        res = [0]*len(boxes)
-        for i in range(len(boxes)):
-            res[i] = sum(abs(i-j) for j in a)
-        return res
-
-    def maximumScore(self, nums: List[int], multipliers: List[int]) -> int:
-        """ 5687. 执行乘法运算的最大分数
-
-        AC + Error2
-            dfs超时，所以重写dp，dp下标有点麻烦，但是测试案例过了，基本就没问题了。
-        """
-        # # dfs 算法，超时了
-        # res = -100000000000
-        # def dfs(lst, mul, score):
-        #     nonlocal res
-        #     if not mul:
-        #         res = max(res, score)
-        #     else:
-        #         dfs(lst[1:], mul[1:], score+lst[0]*mul[0])
-        #         dfs(lst[:-1], mul[1:], score+lst[-1]*mul[0])
-        #
-        # dfs(nums, multipliers, 0)
-        # return res
-
-        # # 动态规划的方法，还是写一下状态方程再编码比较好
-        n, m = len(nums), len(multipliers)
-        dp = [[0]*(m+1) for _ in range(m+1)]  # dp[i][j] 表示左边取i个，右边取j个
-        for dep in range(1, m+1):
-            dp[dep][0] = dp[dep-1][0]+multipliers[dep-1]*nums[dep-1]
-            dp[0][dep] = dp[0][dep-1]+multipliers[dep-1]*nums[-dep]
-            for i in range(1, dep):
-                r = dep-i
-                dp[i][r] = max(dp[i][r-1]+multipliers[dep-1]*nums[-r],
-                               dp[i-1][r]+multipliers[dep-1]*nums[i-1])
-        return max(dp[i][m-i] for i in range(m))
-
-    def longestPalindrome(self, word1: str, word2: str) -> int:
-        """ 5688. 由子序列构造的最长回文串的长度
-
-        Fail
-            想想用dp，但是比赛时放弃了。
-
-        """
-        n1, n2 = len(word1), len(word2)
-        dp = [[]]
-
-
 if __name__ == '__main__':
-    res = Contest_Weekly_46().getCoprimes([5, 6, 10, 2, 3, 6, 15], [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6]])
+    res = Solution().getCoprimes(
+            [5, 6, 10, 2, 3, 6, 15], [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6]]
+    )
     print(res)

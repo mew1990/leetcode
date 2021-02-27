@@ -10,7 +10,8 @@ import bisect
 class Feb_2021:
     """
     主题：双指针 2月1日~2月6日
-    主题：栈和队列 2月8日~
+    主题：栈和队列 2月8日~2月14日
+    后面没有明确主题
     """
 
     def fairCandySwap(self, A: List[int], B: List[int]) -> List[int]:
@@ -306,3 +307,28 @@ class Feb_2021:
             cur -= customers[right-X] if grumpy[right-X] == 1 else 0
             cur_max = max(cur, cur_max)
         return ans+cur_max
+
+    def findNumOfValidWords(self, words: List[str], puzzles: List[str]) -> List[int]:
+        """ p1178 hard 状态压缩
+        算法+++++
+
+        题解：【猜字谜】对字母状态进行压缩compress函数，遍历的方式也很不错 j=(j-1)&a
+        """
+
+        def compress(s: str) -> int:
+            res = 0
+            for i in s:
+                res |= 1<<(ord(i)-0x61)
+            return res
+
+        ww = defaultdict(int)
+        for w in words:
+            ww[compress(w)] += 1
+        ans = [0]*len(puzzles)
+        for i, p in enumerate(puzzles):
+            j = a = compress(p)
+            while j:
+                if j>>(ord(p[0])-0x61)&1:
+                    ans[i] += ww[j]
+                j = (j-1)&a
+        return ans

@@ -665,6 +665,119 @@ class Solution:
         if n < 2 or k%n == 0: return head
         return _rotate_right(head, _get_kth_node(head, n-1-k%n), _get_kth_node(head, n-1))
 
+    def uniquePaths(self, m: int, n: int) -> int:
+        """ p62 medium DP
+        题解：【不同路径】经典动规题
+        """
+        dp = [[1]*n for _ in range(m)]
+        for i in range(1, m):
+            for j in range(1, n):
+                dp[i][j] = dp[i-1][j]+dp[i][j-1]
+        return dp[m-1][n-1]
+
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        """ p63 medium DP
+        题解：【不同路径II】动规
+        """
+        m, n = len(obstacleGrid), len(obstacleGrid[0])
+        dp = [[0]*n for _ in range(m)]
+        for i in range(m):
+            if obstacleGrid[i][0] == 0: dp[i][0] = 1
+            else: break
+        for j in range(n):
+            if obstacleGrid[0][j] == 0: dp[0][j] = 1
+            else: break
+        for i in range(1, m):
+            for j in range(1, n):
+                if obstacleGrid[i][j] == 0:
+                    dp[i][j] = dp[i-1][j]+dp[i][j-1]
+        return dp[-1][-1]
+
+    def minPathSum(self, grid: List[List[int]]) -> int:
+        """ p64 medium DP
+        题解：【最小路径和】和p62,63类似 """
+        m, n = len(grid), len(grid[0])
+        dp = [grid[i].copy() for i in range(m)]
+        for i in range(1, m): dp[i][0] += dp[i-1][0]
+        for j in range(1, n): dp[0][j] += dp[0][j-1]
+        for i in range(1, m):
+            for j in range(1, n):
+                dp[i][j] += min(dp[i-1][j], dp[i][j-1])
+        return dp[-1][-1]
+
+    def isNumber(self, s: str) -> bool:
+        """ p65 hard 字符串处理 模拟
+        """
+        raise NotImplemented
+
+    def plusOne(self, digits: List[int]) -> List[int]:
+        """ p66 easy 模拟
+        题解：【加一】没啥可说的"""
+        cur, idx = 1, len(digits)-1
+        while cur and idx >= 0:
+            cur, digits[idx] = divmod(digits[idx]+cur, 10)
+            idx -= 1
+        if cur and idx == -1:
+            digits.insert(0, cur)
+        return digits
+
+    def addBinary(self, a: str, b: str) -> str:
+        """ p67 easy 字符串处理
+        """
+        return bin(int(a, 2)+int(b, 2))[2:]
+
+    def fullJustify(self, words: List[str], maxWidth: int) -> List[str]:
+        """ p68 hard 模拟
+        题解：
+        """
+        raise NotImplemented
+
+    def mySqrt(self, x: int) -> int:
+        """ p69 easy 二分
+        题解：【x的平方根】"""
+        if x == 0: return 0
+        l, r = 1, x
+        while l+1 < r:
+            mid = (l+r)>>1
+            if mid*mid <= x:
+                l = mid
+            else:
+                r = mid
+        return l
+
+    def climbStairs(self, n: int) -> int:
+        """ p70 easy 数学
+        题解：【爬楼梯】斐波那契数列"""
+
+        @lru_cache
+        def fib(n):
+            return 1 if n <= 1 else fib(n-1)+fib(n-2)
+
+        return fib(n)
+
+    def simplifyPath(self, path: str) -> str:
+        """ p71 medium 栈
+        题解：【简化路径】"""
+        stack = []
+        for i in path.split('/'):
+            if i == '.' or i == '': continue
+            if i == '..':
+                if stack: stack.pop()
+                continue
+            stack.append(i)
+        return '/'+'/'.join(stack)
+
+    def minDistance(self, word1: str, word2: str) -> int:
+        """ p72 hard """
+        m, n = len(word1), len(word2)
+        dp = [[0]*(n+1) for _ in range(m+1)]  # dp[i][j]表示word1[:i],word2[:j]匹配的最少操作数
+        for i in range(m+1): dp[i][0] = i  # 这里是 m+1 不是 m
+        for j in range(n+1): dp[0][j] = j
+        for i in range(1, m+1):
+            for j in range(1, n+1):
+                dp[i][j] = min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+(0 if word1[i-1] == word2[j-1] else 1))
+        return dp[m][n]
+
     def largestRectangleArea(self, heights: List[int]) -> int:
         """ p84 hard 栈
         算法++
