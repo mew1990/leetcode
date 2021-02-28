@@ -18,6 +18,102 @@ def interesting(func):
     return wrap
 
 
+class Contest_230:
+    """ 全场做下来，比较偏重数学推导和计算 """
+
+    def countMatches(self, items: List[List[str]], ruleKey: str, ruleValue: str) -> int:
+        # 统计匹配检索规则的物品数量
+        idx = ['type', 'color', 'name'].index(ruleKey)
+        return sum(i[idx] == ruleValue for i in items)
+
+    @interesting
+    def closestCost(self, baseCosts: List[int], toppingCosts: List[int], target: int) -> int:
+        """ 最接近目标价格的甜点成本
+
+        AC
+            用 分组背包？ 但是数据量很小，可以用dfs，不过我还是用了枚举。
+            对于必须选择一样，有点懵，回头看，其实就是一个大的分组背包。就是倒数遍历状态叠加。
+
+        Tips:
+            看到tops选手的一个bitmap状态压缩，想想python有没有这个数据结构？哈哈，int本身就是bitmap啊
+            改写如下（寻找target那块代码效率比较低）：
+            >>> f = 0
+            >>> for i in baseCosts:
+            >>>     f |= 1<<i
+            >>> for i in toppingCosts:
+            >>>     f |= (f<<i)|(f<<(i+i))
+            >>> low, high = target, target
+            >>> while 1:
+            >>>     if low > 0 and f>>low&1: return low
+            >>>     if f>>high&1: return high
+            >>>     low, high = low-1, high+1
+        """
+        a = {0}
+        for i in toppingCosts:
+            tmp = a.copy()
+            for j in a:
+                tmp.add(j+i)
+                tmp.add(j+i+i)
+            a = tmp
+        a = list(sorted(a))
+        res_d = min(baseCosts)
+        res_u = max(baseCosts)+sum(toppingCosts)*2
+        for i in baseCosts:
+            idx = bisect.bisect_left(a, target-i)
+            if idx > 0 and res_d < i+a[idx-1]: res_d = i+a[idx-1]
+            if idx < len(a) and res_u > i+a[idx]: res_d = i+a[idx]
+        if res_u-target < target-res_d:
+            return res_u
+        else:
+            return res_d
+
+    def minOperations(self, nums1: List[int], nums2: List[int]) -> int:
+        """ 通过最少操作次数使数组的和相等
+
+        AC+error2
+            贪心+模拟，思路细节比较多，不算非常清晰，编码对相同数值进行压缩处理，error了2次，比赛时简化也能AC
+            可以在逻辑和存储结构上再优化下
+        """
+        if len(nums1) < len(nums2): nums1, nums2 = nums2, nums1
+        if len(nums1) > len(nums2)*6: return -1
+        a = [nums1.count(i) for i in range(7)]
+        b = [nums2.count(i) for i in range(7)]
+        tota = sum(i*a[i] for i in range(7))
+        totb = sum(i*b[i] for i in range(7))
+        if tota == totb: return 0
+        if tota < totb:
+            a, b = b, a
+        diff = abs(tota-totb)
+        res = 0
+        for i in range(1, 6):
+            if (a[7-i]+b[i])*(6-i) >= diff:
+                return res+(diff-1)//(6-i)+1
+            res += a[7-i]+b[i]
+            diff -= (a[7-i]+b[i])*(6-i)
+        return res
+
+    def getCollisionTimes(self, cars: List[List[int]]) -> List[float]:
+        res = [-1.0]
+        stack = [cars[-1]+[float('inf')]]  # 位置，速度，时间（表示时间点，也可以用有效线段的宽度表达）
+        # 这里用时间点更方便一些，这样不用修改位置
+        for y, v in reversed(cars[:-1]):  # 保证起始位置倒序
+            tt = float('inf')
+            while stack:
+                yp, vp, tp = stack[-1]  # 取上一个线段（截距，斜率，x轴投影宽度）
+                if v > vp:  # 能追上（斜率大）
+                    tt = (yp-y)/(v-vp)  # 计算追逐时间
+                    if tt < tp:  # 如果能在有效时间内追上，
+                        res.append(tt)
+                        break
+                    else:
+                        stack.pop()
+                else:
+                    stack.pop()  # 追不上，那可能追上前面更慢的
+            if tt == float('inf'): res.append(-1.0)
+            stack.append([y, v, tt])
+        return res[::-1]
+
+
 class Contest_229:
     def mergeAlternately(self, word1: str, word2: str) -> str:
         """ 5685. 交替合并字符串
