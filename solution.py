@@ -3,7 +3,7 @@
 
 from .my_defs import *
 from typing import *
-from bisect import bisect_left, bisect
+import bisect
 import collections
 import itertools
 
@@ -185,11 +185,11 @@ class Solution:
         # p34 medium 二分
         # ... 二分查找代码阅读 bisect.py，会用 bisect_left 和 bisect(=bisect_right)
         #     根据 bisect.py 说明：即插入target后仍有序的最小index，最大index
-        l = bisect_left(nums, target)
+        l = bisect.bisect_left(nums, target)
         if len(nums) == 0 or l == len(nums) or nums[l] != target:
             return [-1, -1]
         else:
-            return [l, bisect(nums, target)-1]
+            return [l, bisect.bisect(nums, target)-1]
 
     def searchInsert(self, nums: List[int], target: int) -> int:
         # p35 easy  二分
@@ -777,6 +777,57 @@ class Solution:
             for j in range(1, n+1):
                 dp[i][j] = min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+(0 if word1[i-1] == word2[j-1] else 1))
         return dp[m][n]
+
+    def setZeroes(self, matrix: List[List[int]]) -> None:
+        """ p73 medium 模拟
+        为了满足，空间 O(1)
+        """
+        m, n = len(matrix), len(matrix[0])
+        flag_row = any(matrix[i][0] == 0 for i in range(m))
+        flag_col = any(matrix[0][i] == 0 for i in range(n))
+        for i in range(1, m):
+            for j in range(1, n):
+                if matrix[i][j] == 0:
+                    matrix[i][0] = matrix[0][j] = 0
+        for i in range(1, m):
+            if matrix[i][0] == 0:
+                for j in range(1, n):
+                    matrix[i][j] = 0
+        for j in range(1, n):
+            if matrix[0][j] == 0:
+                for i in range(1, m):
+                    matrix[i][j] = 0
+        if flag_row:
+            for i in range(0, m):
+                matrix[i][0] = 0
+        if flag_col:
+            for j in range(0, n):
+                matrix[0][j] = 0
+        return
+
+    def searchMatrix(self, matrix: List[List[int]], target: int) -> bool:
+        """ p74 medium 二分
+        题解：先纵坐标二分，再横坐标二分。考虑二分的语义，有意思的"""
+        if target < matrix[0][0] or target > matrix[-1][-1]: return False
+        row = bisect.bisect_right([matrix[i][0] for i in range(len(matrix))], target)
+        col = bisect.bisect_right(matrix[row-1], target)
+        return matrix[row-1][col-1] == target
+
+    def sortColors(self, nums: List[int]) -> None:
+        """ p75 medium  状态机
+        面试+ 时间O(N)"""
+        if len(nums) <= 1: return
+        b, e, i = 0, len(nums)-1, 0
+        while i <= e:
+            if nums[i] == 0:
+                nums[b], nums[i] = nums[i], nums[b]
+                b += 1
+                i += 1
+            elif nums[i] == 2:
+                nums[e], nums[i] = nums[i], nums[e]
+                e -= 1
+            else:  # ==1
+                i += 1
 
     def largestRectangleArea(self, heights: List[int]) -> int:
         """ p84 hard 栈
