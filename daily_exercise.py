@@ -332,3 +332,18 @@ class Feb_2021:
                     ans[i] += ww[j]
                 j = (j-1)&a
         return ans
+
+    def maxEnvelopes(self, envelopes: List[List[int]]) -> int:
+        """ p354 hard LIS
+        算法+++
+        题解：【俄罗斯套娃信封问题】二维的最长递增子序列问题，重要的是排序时顺序一维，逆序第二维。
+            这里是严格递增序列，如果改成非降序列的话，就是顺序第二维并且bisect_right了，或者状态压缩也行。"""
+        envelopes.sort(key=lambda x:(x[0], -x[1]))
+        res = []
+        for i, (x, y) in enumerate(envelopes):
+            pos = bisect.bisect_left(res, y)
+            if pos >= len(res):
+                res.append(y)
+            else:
+                res[pos] = y
+        return len(res)
