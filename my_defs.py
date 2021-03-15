@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author  : mew
 from typing import *
+from pprint import pprint
 
 
 # Definition for singly-linked list.
@@ -131,3 +132,48 @@ class myLRUCache():
         removed = self.tail.prev
         self._remove(removed)
         return removed
+
+
+class Trie:
+    """
+    >>> a = Trie()
+    >>> a.insert('abc')
+    >>> a.insert('ab')
+    >>> a.insert('acc')
+    >>> pprint(a.root)
+    {'#': 3,
+     'a': {'#': 3,
+           'b': {'#': 2, '$': True, 'c': {'#': 1, '$': True}},
+           'c': {'#': 1, 'c': {'#': 1, '$': True}}}}
+    >>> print(a.startswith('ab')) # 返回以s开头的字串的数量
+    2
+    >>> print(a.contains('abb'), a.contains('acc')) # 是否包含字串s
+    False True
+    """
+
+    def __init__(self):
+        self.root = {'#':0}
+
+    def insert(self, s: str) -> None:
+        node = self.root
+        node['#'] += 1
+        for i in s:
+            if i not in node: node[i] = dict()
+            node = node[i]
+            node['#'] = node.get('#', 0)+1  # 前缀计数
+        node['$'] = True  # 完整串标记
+
+    def _search(self, s: str) -> dict or None:
+        node = self.root
+        for i in s:
+            if i not in node: return None
+            node = node[i]
+        return node
+
+    def startswith(self, s: str) -> int:
+        node = self._search(s)
+        return node['#'] if node is not None else 0
+
+    def contains(self, s: str) -> bool:
+        node = self._search(s)
+        return True if node is not None and '$' in node else False

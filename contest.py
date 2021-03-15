@@ -8,6 +8,7 @@ from itertools import *
 from functools import *
 import math
 import bisect
+import heapq
 
 
 def interesting(func):
@@ -729,8 +730,173 @@ class Contest_Weekly_45:
         return max(dp[-2])  # 倒数第二个，不超过k个
 
 
+class Contest_Weekly_47:
+    def nearestValidPoint(self, x: int, y: int, points: List[List[int]]) -> int:
+        res = float('inf')
+        pos = -1
+        for i, (xx, yy) in enumerate(points):
+            if x == xx and res > abs(y-yy):
+                res = abs(y-yy)
+                pos = i
+            if y == yy and res > abs(x-xx):
+                res = abs(x-xx)
+                pos = i
+        return pos
+
+    def checkPowersOfThree(self, n: int) -> bool:
+        while n > 0:
+            n, x = divmod(n, 3)
+            if x == 2: return False
+        return True
+
+    def beautySum(self, s: str) -> int:
+        def func(a):
+            return max(a.values())-min(a.values())
+
+        res = 0
+        for i in range(len(s)):
+            a = Counter(s[i:i+2])
+            for j in range(i+2, len(s)):
+                a[s[j]] += 1
+                res += func(a)
+        return res
+
+    def countPairs(self, n: int, edges: List[List[int]], queries: List[int]) -> List[int]:
+        """ 统计点对的数目
+
+        题解：
+            数据量较大，需要对算法进行优化。
+            主要是顶点对的遍历算法，会超时。
+            结合题目边数<<顶点对数，所以计算补集。主要是 func 中的代码
+        """
+        a = [0]*(n+1)  # 每个node的度
+        dd = defaultdict(int)  # 边的权重
+        for i, j in edges:
+            a[i] += 1
+            a[j] += 1
+            if i > j: i, j = j, i
+            dd[(i, j)] += 1
+
+        b = list(sorted(a[1:]))
+        nb = len(b)
+
+        def func(q):
+            tmp = 0
+            idx = nb
+            for i in range(nb):
+                while idx >= 1 and b[idx-1]+b[i] > q:
+                    idx -= 1
+                tmp += len(b)-max(i+1, idx)
+            return tmp
+
+        res = []
+        for q in queries:
+            tmp = func(q)
+            for (i, j), v in dd.items():
+                if a[i]+a[j] > q and a[i]+a[j]-v <= q:
+                    tmp -= 1
+            res.append(tmp)
+        return res
+
+
+class Contest_231:
+    def checkOnesSegment(self, s: str) -> bool:
+        return s.strip('0').split('0').__len__() == 1
+
+    def minElements(self, nums: List[int], limit: int, goal: int) -> int:
+        a = goal-sum(nums)
+        b, c = divmod(abs(a), limit)
+        return b+(1 if c > 0 else 0)
+
+    def countRestrictedPaths(self, n: int, edges: List[List[int]]) -> int:
+        """
+
+        """
+        a = defaultdict(dict)
+        for i, j, v in edges:
+            a[i][j] = v
+            a[j][i] = v
+        dist = [-1]*(n+1)
+        not_used = [True]*(n+1)
+        parent = [0]*(n+1)
+
+        not_used[n] = False
+        dd = {}
+        for k, v in a[n].items():
+            dd[k] = v
+            parent[k] = n
+
+        while 1 not in dd:
+            x = choose_nearest(dd)
+            not_used[x] = False
+            del dd[x]
+            for k, v in a[x].items():
+                if not_used[k]:
+                    dd[k] = min(dd[k], v+dist[x])
+
+        def renew(x):
+            for k, v in a[x].items():
+                if k not in used:
+                    dist[k] = min(v+dist[x])
+                    to_add[k] = min(to_add.get(k, float('inf')), v+to_add[x])
+
+        used = {n}
+        dist[n] = 0
+        renew(n)
+        while dist[1] == float('inf'):
+            renew(n)
+
+    def minChanges(self, nums: List[int], k: int) -> int:
+        if k == 1: return sum(all(nums))
+
+
+class Contest_232:
+
+    def areAlmostEqual(self, s1: str, s2: str) -> bool:
+        # 错了一次，and后面的条件没有意识到
+        return sum(i != j for i, j in zip(s1, s2)) in [0, 2] and Counter(s1) == Counter(s2)
+
+    def findCenter(self, edges: List[List[int]]) -> int:
+        a, b = edges[0]
+        if a in edges[1]: return a
+        if b in edges[1]: return b
+
+    def maxAverageRatio(self, classes: List[List[int]], extraStudents: int) -> float:
+        # 比较容易想到的是用优先级队列 和 贪心
+        # 在几次错误后，才想到用 pa/to-(pa+1)/(to+1) 来表示key
+        n = len(classes)
+        h = []
+        for i in range(n):
+            pa, to = classes[i]
+            heapq.heappush(h, [pa/to-(pa+1)/(to+1), i])
+        for i in range(extraStudents):
+            _, idx = heapq.heappop(h)
+            pa, to = classes[idx]
+            pa += 1
+            to += 1
+            classes[idx] = [pa, to]
+            heapq.heappush(h, [pa/to-(pa+1)/(to+1), idx])
+        return sum(pa/to for pa, to in classes)/n
+
+    def maximumScore(self, heights: List[int], k: int) -> int:
+        # top1 的解法挺好
+        # 这里借p84题的解法，增加一个k的限制条件，
+        heights.append(0)
+        stack = [-1]
+        ans = 0
+        for i in range(len(heights)):
+            while heights[i] < heights[stack[-1]]:
+                h = heights[stack.pop()]
+                if i-1 >= k >= stack[-1]+1:
+                    w = i-stack[-1]-1
+                    ans = max(h*w, ans)
+            stack.append(i)
+        return ans
+
+
 if __name__ == '__main__':
-    res = Solution().getCoprimes(
-            [5, 6, 10, 2, 3, 6, 15], [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6]]
+    res = Solution().maximumScore(
+            [1, 4, 3, 7, 4, 5],
+            3
     )
     print(res)

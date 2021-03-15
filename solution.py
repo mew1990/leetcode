@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author  : mew
 
-from .my_defs import *
+from leetcode.my_defs import *
 from typing import *
 import bisect
 import collections
@@ -10,6 +10,81 @@ import itertools
 
 class Solution:
     """ 学习编程技巧 """
+
+    def threeSum(self, nums: List[int]) -> List[List[int]]:
+        """ p15 medium 双指针 """
+        nums.sort()
+        n = len(nums)
+        res = []
+        for i in range(n-2):
+            if i > 0 and nums[i] == nums[i-1]: continue
+            l, r = i+1, n-1
+            tar = -nums[i]
+            while l < r:
+                if nums[l]+nums[r] == tar:
+                    res.append([nums[x] for x in [i, l, r]])
+                    l += 1
+                    while l < r and nums[l] == nums[l-1]: l += 1
+                    r -= 1
+                elif nums[l]+nums[r] < tar:
+                    l += 1
+                else:
+                    r -= 1
+        return res
+
+    def threeSumClosest(self, nums: List[int], target: int) -> int:
+        """ p16 medium 双指针 """
+        nums.sort()
+        n = len(nums)
+        res = sum(nums[:3])
+        for i in range(n-2):
+            l, r = i+1, n-1
+            while l < r:
+                tmp = nums[i]+nums[l]+nums[r]
+                if abs(tmp-target) < abs(res-target):
+                    res = tmp
+                if tmp < target:
+                    l += 1
+                else:
+                    r -= 1
+        return res
+
+    def letterCombinations(self, digits: str) -> List[str]:
+        """ p17 medium 排列
+
+        列表扩展的方法可以考虑下：
+        >>> ret = [item+a for a in alphabets for item in ret]
+        """
+        if not digits: return []
+        func = lambda i:{"2":"abc", "3":"def", "4":"ghi", "5":"jkl",
+                         "6":"mno", "7":"pqrs", "8":"tuv", "9":"wxyz"}[i]
+        return [''.join(x) for x in itertools.product(*map(func, list(digits)))]
+
+    def fourSum(self, nums: List[int], target: int) -> List[List[int]]:
+        """ p18 medium 排序
+
+        做各种超界剪枝，能够更快
+        """
+        nums.sort()
+        n = len(nums)
+        res = []
+        for i in range(n-3):
+            if i > 0 and nums[i] == nums[i-1]: continue
+            for j in range(i+1, n-2):
+                if j > i+1 and nums[j] == nums[j-1]: continue
+                l, r = j+1, n-1
+                tar = target-nums[i]-nums[j]
+                while l < r:
+                    if nums[l]+nums[r] == tar:
+                        res.append([nums[x] for x in [i, j, l, r]])
+                        l += 1
+                        while l > j+1 and l < r and nums[l] == nums[l-1]: l += 1
+                        r -= 1
+                    elif nums[l]+nums[r] < tar:
+                        l += 1
+                    else:
+                        r -= 1
+        return res
 
     def removeNthFromEnd(self, head: ListNode, n: int) -> ListNode:
         # p19 medium 链表 指针
@@ -828,6 +903,88 @@ class Solution:
                 e -= 1
             else:  # ==1
                 i += 1
+
+    def minWindow(self, s: str, t: str) -> str:
+        """ p76 hard 滑动窗口
+        算法++
+
+        >>> Solution().minWindow("ACCD", "ABC")
+        ''
+        >>> Solution().minWindow("ADOBECODEBANC", "ABC")
+        'BANC'
+        >>> Solution().minWindow("a", "a")
+        'a'
+
+        """
+        a = Counter(t)
+        tot = len(a.keys())
+        left = -1
+        res = '#'*(len(s)+1)  # 哨兵
+        for i, si in enumerate(s):
+            if si in a:
+                a[si] -= 1
+                if a[si] == 0: tot -= 1
+                while tot == 0:  # 全部满足
+                    left += 1
+                    if s[left] in a:
+                        a[s[left]] += 1
+                        if a[s[left]] == 1:
+                            tot += 1
+                            if len(s[left:i+1]) < len(res): res = s[left:i+1]
+        return '' if res[0] == '#' else res
+
+    def combine(self, n: int, k: int) -> List[List[int]]:
+        """ p77 medium 回溯 排列
+        内置的函数是 itertools.combinations
+        >>> Solution().combine(4,2)
+        [[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]]
+        """
+        res = [[]]
+        for i in range(k):
+            tmp = []
+            for lst in res:
+                for k in range(lst[-1]+1 if lst else 1, n+1):
+                    tmp.append(lst+[k])
+            res = tmp
+        return res
+
+    def subsets(self, nums: List[int]) -> List[List[int]]:
+        """ p78 medium 排序 回溯
+        >>> Solution().subsets([1,2,3])
+        [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
+        """
+        res = [[]]
+        for i in nums:
+            res.extend([j+[i] for j in res])
+        return res
+
+    def exist(self, board: List[List[str]], word: str) -> bool:
+        """ p79 medium 回溯
+        >>> Solution().exist([list('ABCE'),list('SFCS'),list('ADEE')],'ABCCED')
+        True
+        >>> Solution().exist([list('ABCE'),list('SFCS'),list('ADEE')],'SEE')
+        True
+        >>> Solution().exist([list('ABCE'),list('SFCS'),list('ADEE')],'ABCB')
+        False
+
+        """
+
+        def check(i, j, k):
+            if k == len(word): return True
+            if word[k] == board[i][j]:
+                tmp, board[i][j] = board[i][j], ''
+                for dx, dy in [[1, 0], [0, 1], [-1, 0], [0, -1]]:
+                    if 0 <= i+dx < n and 0 <= j+dy < m:
+                        if check(i+dx, j+dy, k+1): return True
+                board[i][j] = tmp
+            else:
+                return False
+
+        n, m = len(board), len(board[0])
+        for i in range(n):
+            for j in range(m):
+                if check(i, j, 0): return True
+        return False
 
     def largestRectangleArea(self, heights: List[int]) -> int:
         """ p84 hard 栈

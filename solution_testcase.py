@@ -15,9 +15,18 @@ class Template(unittest.TestCase):
             return self.assertEqual(outputs, self.method(*inputs))
         return self.assertEqual(outputs, self.method(inputs))
 
+    @unittest.skip
     def test_case(self):
         raise NotImplemented
 
+
+class p18(Template):
+    method = Solution.fourSum
+
+    def test_case(self):
+        inputs = ([-2, -1, -1, 1, 1, 2, 2], 0)
+        outputs = [[-2, -1, 1, 2], [-1, -1, 1, 1]]
+        self._assert_equal(inputs, outputs)
 
 class p20(unittest.TestCase):
     method = Solution().isValid
