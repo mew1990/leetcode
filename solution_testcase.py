@@ -20,6 +20,16 @@ class Template(unittest.TestCase):
         raise NotImplemented
 
 
+class p10(Template):
+    method = Solution.isMatch_p10
+
+    def test_case(self):
+        self._assert_equal(('aa', 'a*'), True)
+        self._assert_equal(('ab', '.*'), True)
+        self._assert_equal(('aab', 'c*a*b'), True)
+        self._assert_equal(('mississippi', 'mis*is*p*.'), False)
+
+
 class p18(Template):
     method = Solution.fourSum
 
@@ -27,6 +37,7 @@ class p18(Template):
         inputs = ([-2, -1, -1, 1, 1, 2, 2], 0)
         outputs = [[-2, -1, 1, 2], [-1, -1, 1, 1]]
         self._assert_equal(inputs, outputs)
+
 
 class p20(unittest.TestCase):
     method = Solution().isValid

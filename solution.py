@@ -11,6 +11,27 @@ import itertools
 class Solution:
     """ 学习编程技巧 """
 
+    def isMatch_p10(self, s, p):
+        """ p10 hard 正则 DP
+
+        完全匹配，*是重复
+        """
+        ns, np = len(s), len(p)
+        a = [[False]*(np+1) for _ in range(ns+1)]
+        a[0][0] = True  # a[i][j] 表示 s[:i] 和 p[:j] 完全匹配
+        for i in range(np):
+            a[0][i+1] = p[i] == '*' and a[0][i-1]  # 只有前面出现*时才匹配
+        for i in range(ns):
+            for j in range(np):
+                if p[j] == '*':
+                    # 这里是匹配p的两个 j-1, j+1，没有用到j
+                    # 可能有 '.*'能匹配任何的
+                    a[i+1][j+1] = a[i+1][j-1] or ((s[i] == p[j-1] or p[j-1] == '.') and a[i][j+1])
+                else:
+                    a[i+1][j+1] = a[i][j] and (s[i] == p[j] or p[j] == '.')
+        # pprint(a)
+        return a[-1][-1]
+
     def threeSum(self, nums: List[int]) -> List[List[int]]:
         """ p15 medium 双指针 """
         nums.sort()
@@ -960,6 +981,8 @@ class Solution:
 
     def exist(self, board: List[List[str]], word: str) -> bool:
         """ p79 medium 回溯
+        加个剪枝（字符统计Counter）会快很多
+
         >>> Solution().exist([list('ABCE'),list('SFCS'),list('ADEE')],'ABCCED')
         True
         >>> Solution().exist([list('ABCE'),list('SFCS'),list('ADEE')],'SEE')
@@ -969,22 +992,58 @@ class Solution:
 
         """
 
-        def check(i, j, k):
+        def check(i, j, k):  # k是已匹配的数量 （对于len==1的word）
             if k == len(word): return True
-            if word[k] == board[i][j]:
-                tmp, board[i][j] = board[i][j], ''
-                for dx, dy in [[1, 0], [0, 1], [-1, 0], [0, -1]]:
-                    if 0 <= i+dx < n and 0 <= j+dy < m:
-                        if check(i+dx, j+dy, k+1): return True
-                board[i][j] = tmp
-            else:
-                return False
+            tmp, board[i][j] = board[i][j], ''
+            for dx, dy in [[1, 0], [0, 1], [-1, 0], [0, -1]]:
+                if 0 <= i+dx < n and 0 <= j+dy < m:
+                    if word[k] == board[i+dx][j+dy] and check(i+dx, j+dy, k+1):
+                        return True
+            board[i][j] = tmp
+            return False
 
         n, m = len(board), len(board[0])
         for i in range(n):
             for j in range(m):
-                if check(i, j, 0): return True
+                if board[i][j] == word[0] and check(i, j, 1): return True
         return False
+
+    def removeDuplicates_82(self, nums: List[int]) -> int:
+        """ p80 medium 数学
+        >>> Solution().removeDuplicates_82([0,0,1,1,1,1,2,3,3])
+        7
+        >>> Solution().removeDuplicates_82([1,1,1,2,2,3])
+        5
+        """
+        idx = 2
+        for i in range(2, len(nums)):
+            if nums[idx-2] != nums[i]:
+                nums[idx] = nums[i]
+                idx += 1
+        return idx
+
+    def search_81(self, nums: List[int], target: int) -> bool:
+        """ p81 medium 二分 """
+        pass
+
+    def deleteDuplicates(self, head: ListNode) -> ListNode:
+        """p82 medium 链表操作
+        """
+        if not head: return head
+
+        node = ListNode(head.val-1)
+        node.next = head
+        a, b = node, head
+        while b:
+            if b.next and b.val == b.next.val:
+                while b.next and b.val == b.next.val:
+                    b = b.next
+                a.next = b.next
+                b = b.next
+            else:
+                a, b = a.next, b.next
+
+        return node.next
 
     def largestRectangleArea(self, heights: List[int]) -> int:
         """ p84 hard 栈
@@ -1022,3 +1081,106 @@ class Solution:
             stack.append(i)
 
         return res
+
+    def maximalRectangle(self, matrix: List[List[str]]) -> int:
+        """ p85 hard 位运算 DP
+        算法+++
+
+        """
+
+        @lru_cache
+        def width(base):
+            if base: return width(base&base>>1)+1
+            else: return 0
+
+        m = [int(''.join(i), 2) for i in matrix]
+        n = len(m)
+        res = 0
+        for i in range(n):
+            base = m[i]
+            j = i+1
+            while base:
+                res = max(res, width(base)*(j-i))  # j-i = height
+                if j == n: break
+                base &= m[j]
+                j += 1
+        return res
+
+    def partition(self, head: ListNode, x: int) -> ListNode:
+        """ p86 medium 链表操作
+        """
+        dummy = ListNode(0)
+        tail = dummy
+        dummy2 = ListNode(0)
+        tail2 = dummy2
+        while head:
+            if head.val < x:
+                tail.next = head
+                tail = tail.next
+            else:
+                tail2.next = head
+                tail2 = tail2.next
+            head = head.next
+        tail2.next = None
+        tail.next = dummy2.next
+        return dummy.next
+
+    def isScramble(self, s1: str, s2: str) -> bool:
+        """ p87 hard DP
+        """
+        if Counter(s1) != Counter(s2): return False
+
+        @lru_cache(30000)
+        def dp(i, j, l):
+            if l == 1: return s1[i] == s2[j]
+            else:
+                return any(
+                        # 不交换
+                        dp(i, j, k) and dp(i+k, j+k, l-k) or
+                        # 交换
+                        dp(i, j+l-k, k) and dp(i+k, j, l-k) for k in range(1, l))
+
+        return dp(0, 0, len(s1))  # here len(s1)==len(s2)
+
+    def grayCode(self, n: int) -> List[int]:
+        """ p89 medium
+        """
+        # 0111^*011 = *100, 1000^*100 = (1^*)100
+        # 所以 i^i>>1 得到的结果，仅在i二进制倒数第一个0的位置，与(i+1)^(i+1)>>1得到的结果不同，
+        return [i^i>>1 for i in range(2**n)]
+
+    def subsetsWithDup(self, nums: List[int]) -> List[List[int]]:
+        """ p90 medium 集合背包
+        """
+        res = [[]]
+        for k, v in Counter(nums).items():
+            res.extend([lst+[k]*vi for lst in res for vi in range(1, v+1)])
+        return res
+
+    def numDistinct(self, s: str, t: str) -> int:
+        """ p115 hard DP
+
+        s中包含t的子序列数量
+        >>> Solution().numDistinct('rabbbit', 'rabbit')
+        3
+        >>> Solution().numDistinct('babgbag', 'bag')
+        5
+        """
+        if len(s) == 0 or len(t) == 0: return 0
+        ns, nt = len(s), len(t)
+        a = [[0]*nt for _ in range(ns)]
+        a[0][0] = int(s[0] == t[0])
+        for i in range(1, ns):
+            # 这里就是在计数，也可以用再一个空列，然后累计到后面方法
+            a[i][0] = int(s[i] == t[0])+a[i-1][0]
+        for i in range(nt):
+            # a[0][i] = int(s[0] == t[i])+a[0][i-1]
+            pass  # 这里都是0， 因为 t 必须匹配
+        for i in range(1, ns):
+            for j in range(1, nt):  # 第二重
+                if s[i] == t[j]:  # a[i][j] 表示 s[:i+1] 中子序列 t[:j+1] 的数量
+                    a[i][j] = a[i-1][j]+a[i-1][j-1]
+                else:
+                    a[i][j] = a[i-1][j]  # 这里 j 必须匹配 所以不能跳过j
+        # pprint(a)
+        return a[-1][-1]
