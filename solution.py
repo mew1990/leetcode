@@ -1157,6 +1157,35 @@ class Solution:
             res.extend([lst+[k]*vi for lst in res for vi in range(1, v+1)])
         return res
 
+    def numDecodings(self, s: str) -> int:
+        """ p91 medium 字符串 DP
+        >>> Solution().numDecodings('0')
+        0
+        >>> Solution().numDecodings('1')
+        1
+        >>> Solution().numDecodings('10')
+        1
+        >>> Solution().numDecodings('06')
+        0
+        >>> Solution().numDecodings('226')
+        3
+        """
+        def valid_one(ss):
+            return ss != '0'
+        def valid_two(ss):
+            return ss[0] == '1' or ss[0] == '2' and ss[1] < '7'
+
+        res = [0]*(len(s)+1)
+        res[-1] = 1  # 哨兵
+        res[0] = int(valid_one(s[0]))  # 初始化
+        for i in range(1, len(s)):
+            if valid_one(s[i]):
+                res[i] = res[i-1]
+            if valid_two(s[i-1:i+1]):
+                res[i] += res[i-2]
+            if res[i] == 0: return 0  # 遇到无法解码的情况
+        return res[-2]  # 最后一个哨兵
+
     def numDistinct(self, s: str, t: str) -> int:
         """ p115 hard DP
 

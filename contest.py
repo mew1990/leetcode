@@ -894,9 +894,367 @@ class Contest_232:
         return ans
 
 
-if __name__ == '__main__':
-    res = Solution().maximumScore(
-            [1, 4, 3, 7, 4, 5],
-            3
-    )
-    print(res)
+class Contest_DoubleWeek_48:
+    def secondHighest(self, s: str) -> int:
+        # error1 + AC
+        # 很简单的题，审题不清楚，是第二大，不是第二小。
+        a = set(int(i) for i in s if i.isdigit())
+        a = list(sorted(a, reverse=True))
+        if len(a) <= 1: return -1
+        return a[1]
+
+    class AuthenticationManager:
+        # 第二题看了大半天，有些细节没注意，error2 + AC
+        def __init__(self, timeToLive: int):
+            self.token = {}
+            self.time_to_live = timeToLive
+
+        def generate(self, tokenId: str, currentTime: int) -> None:
+            self.token[tokenId] = currentTime
+
+        def renew(self, tokenId: str, currentTime: int) -> None:
+            # 对没过期的才更新
+            if tokenId in self.token and self.token[tokenId]+self.time_to_live < currentTime:
+                self.token[tokenId] = currentTime
+
+        def countUnexpiredTokens(self, currentTime: int) -> int:
+            return sum(v+self.time_to_live < currentTime for v in self.token.values())
+
+    def getMaximumConsecutive(self, coins: List[int]) -> int:
+        """
+        # 数学题 根据背包也可以想到
+
+        >>> Solution().getMaximumConsecutive([1,1,1,4])
+        >>> Solution().getMaximumConsecutive([1,4,10,3,1])
+        """
+        coins.sort()
+        cur = 0
+        for i in coins:
+            if i <= cur+1:
+                cur += i
+            else:
+                break
+        return cur+1
+
+    def maxScore(self, nums: List[int]) -> int:
+        """
+        思考怎么样简化计算，只要考虑有序的组合方案就行
+
+        >>> Solution().maxScore([1,2])
+        1
+        >>> Solution().maxScore([3,4,6,8])
+        11
+        >>> Solution().maxScore([1,2,3,4,5,6])
+        14
+        """
+        import math
+        def dfs(k, stack):
+            if k == nn:
+                stack.sort()
+                res = sum((i+1)*stack[i] for i in range(nn))
+                nonlocal ans
+                if res > ans: ans = res
+            else:
+                for i in range(n):
+                    if not used[i]:
+                        used[i] = True
+                        for j in range(i+1, n):
+                            if not used[j]:
+                                used[j] = True
+                                dfs(k+1, stack+[math.gcd(nums[i], nums[j])])
+                                used[j] = False
+                        used[i] = False
+                        break
+
+        n = len(nums)
+        nn = n//2
+        ans = 0
+        used = [False]*n
+        dfs(0, [])
+        return ans
+
+
+class Contest_234:
+    def numDifferentIntegers(self, word: str) -> int:
+        a = [i if i.isdigit() else ' ' for i in word]
+        res = ''.join(a).split()
+        return len(set(map(int, res)))
+
+    def reinitializePermutation(self, n: int) -> int:
+        """
+        >>> Contest_234().reinitializePermutation(2)
+        >>> Contest_234().reinitializePermutation(4)
+        >>> Contest_234().reinitializePermutation(6)
+        >>> Contest_234().reinitializePermutation(8)
+        >>> Contest_234().reinitializePermutation(1000)
+
+        """
+
+        def trans(lst):
+            n = len(lst)
+            res = lst.copy()
+            for i in range(n):
+                if i&1 == 0: res[i] = lst[i>>1]
+                else: res[i] = lst[((i-1)>>1)+(n>>1)]
+            return res
+
+        lst = [i for i in range(n)]
+        res = trans(lst)
+        ans = 1
+        while res != lst:
+            print(res)
+            res = trans(res)
+            ans += 1
+        print(ans)
+        return ans
+
+    def evaluate(self, s: str, knowledge: List[List[str]]) -> str:
+        knowledge = dict(knowledge)
+        lst = []
+        flag = False
+        cur = ''
+        for i in s:
+            if i == '(': flag = True
+            elif i == ')':
+                flag = False
+                lst.append(knowledge[cur])
+                cur = ''
+            else:
+                if flag:
+                    cur = cur+i
+                else:
+                    lst.append(i)
+        return ''.join(lst)
+
+    def maxNiceDivisors(self, primeFactors: int) -> int:
+        """
+        >>> Contest_234().maxNiceDivisors(5)
+        6
+        >>> Contest_234().maxNiceDivisors(8)
+        18
+        >>> Contest_234().maxNiceDivisors(18)
+        729
+
+        """
+        if primeFactors < 4:
+            return primeFactors
+        a3 = (primeFactors-2)//3  # 不能留下1，至少留下2 所以这么处理
+        a2 = (primeFactors-a3*3)
+        # print(a3, a2)
+        factor = 3
+        nn = 10**9+7
+        while a3:
+            if a3&1: a2 = (a2*factor)%nn
+            factor = (factor*factor)%nn  # 这里是平方啊！
+            a3 = a3>>1
+        return a2
+
+
+class LCCUP_2021_personal:
+    def purchasePlans(self, nums: List[int], target: int) -> int:
+        """
+        >>> Solution().purchasePlans([2,5,3,5], 6)
+        1
+        """
+        nums.sort()
+        n = len(nums)
+        res = 0
+        for i in range(n):
+            idx = bisect.bisect_right(nums, target-nums[i])
+            res += idx
+            if nums[i]+nums[i] <= target: res -= 1
+        return res//2
+
+    def orchestraLayout(self, num: int, xPos: int, yPos: int) -> int:
+        xt = xPos
+        xd = num-xPos-1
+        yl = yPos
+        yd = num-yPos-1
+        outer_layers = min(xt, xd, yl, yd)
+        # outer_past = sum((num-i-i-1)*4%9 for i in range(outer_layers))%9
+        outer_past = (num**2-(num-outer_layers*2)**2)%9
+        xt -= outer_layers
+        xd -= outer_layers
+        yl -= outer_layers
+        yd -= outer_layers
+
+        if xt == 0: inner = yl
+        elif yd == 0: inner = (num-outer_layers*2-1)+xt
+        elif xd == 0: inner = (num-outer_layers*2-1)*2+yd
+        else: inner = (num-outer_layers*2-1)*3+xd
+
+        return (outer_past+inner)%9+1
+
+    def magicTower(self, nums: List[int]) -> int:
+        """
+        >>> Solution().magicTower([100,100,100,-250,-60,-140,-50,-50,100,150])
+        1
+        >>> Solution().magicTower([-200,-300,400,0])
+        -1
+
+        :param nums:
+        :return:
+        """
+        if sum(nums) < 0: return -1
+
+        h = []
+        cur = 1
+        res = 0
+        for i in nums:
+            cur += i
+            heapq.heappush(h, i)
+            while cur <= 0:
+                a = heapq.heappop(h)
+                cur -= a
+                res += 1
+        return res
+
+    def escapeMaze(self, maze: List[List[str]]) -> bool:
+        """
+        >>> Solution().escapeMaze([[".#.","#.."],["...",".#."],[".##",".#."],["..#",".#."]])
+        True
+
+        >>> Solution().escapeMaze([[".#.","..."],["...","..."]])
+        False
+        >>> Solution().escapeMaze([["...","...","..."],[".##","###","##."],[".##","###","##."],[".##","###","##."],[".##","###","##."],[".##","###","##."],[".##","###","##."]])
+        False
+
+        """
+        tot = len(maze)
+        m, n = len(maze[0]), len(maze[0][0])
+        if tot < m+n-1: return False  # 时间不够
+
+        dd = [[1, 0], [0, 1], [0, 0], [-1, 0], [0, -1]]
+
+        def dfs(x, y, t, once1, once2, more):
+            # print(x, y, t, once1, once2, more)
+            if tot-t < (m-x)+(n-y)-1: return False  # 时间不够
+            if x == m-1 and y == n-1: return True  # 到达
+
+            for dx, dy in dd:
+                xx = x+dx
+                yy = y+dy
+                if 0 <= xx < m and 0 <= yy < n:
+                    if maze[t+1][xx][yy] == '.':
+                        if dfs(xx, yy, t+1, once1, once2, more): return True
+                    else:
+                        temp = xx*100+yy
+                        if once2 == -1:  # once 有空
+                            if temp == once1:
+                                if dfs(xx, yy, t+1, once1, once2, once1): return True
+                            if temp > once1:
+                                if dfs(xx, yy, t+1, temp, once1, more): return True
+                            else:
+                                if dfs(xx, yy, t+1, once1, temp, more): return True
+                        else:  # once 不空
+                            if more == -1:
+                                if temp == once1:
+                                    if dfs(xx, yy, t+1, once1, once2, once1): return True
+                                elif temp == once2:
+                                    if dfs(xx, yy, t+1, once1, once2, once2): return True
+                            else:
+                                if temp == once1 == more or temp == once2 == more:
+                                    if dfs(xx, yy, t+1, once1, once2, more): return True
+            return False
+
+        return dfs(0, 0, 0, -1, -1, -1)
+
+
+class LC_2021_Team:
+    def storeWater(self, bucket: List[int], vat: List[int]) -> int:
+        """
+        >>> LC_2021_Team().storeWater([1,3], [6, 8])
+        4
+        >>> LC_2021_Team().storeWater([9,0,1],[0,2,2])
+        3
+        >>> LC_2021_Team().storeWater([10,0,1],[1000,2,2])
+        55
+        """
+
+        f = lambda b, v:(v-1)//b+1  # b水桶倒满v需要的次数
+        ff = lambda v, t:(v-1)//t+1  # t次倒满v需要的单次水量
+
+        pre = 0
+        a = []
+        n = len(bucket)
+        for i in range(n):
+            if vat[i] == 0:
+                continue
+            elif bucket[i] == 0:
+                a.append([1, vat[i]])
+                pre += 1
+            elif bucket[i] >= vat[i]:
+                a.append([1, 1])
+            else:
+                a.append([bucket[i], vat[i]])
+
+        if len(a) == 0: return pre
+
+        def resize(cur):
+            res = 0
+            for b, v in a:
+                if ff(v, cur) > b:
+                    res += ff(v, cur)-b
+                # print(cur, ff(v, cur), res)
+            # print('res', res)
+            return res
+
+        ans = float('inf')
+        for t in range(10001):
+            add_times = resize(t)
+            ans = min(ans, add_times+t)
+        return pre+ans
+
+    def maxValue(self, root, k: int) -> int:
+        def dp(node) -> list:
+            score = [0]*(k+1)
+            if node is not None:
+                lsc = dp(node.left)
+                rsc = dp(node.right)
+                score[0] = max(lsc)+max(rsc)
+                for i in range(k):
+                    score[i+1] = max(lsc[j]+rsc[i-j] for j in range(i+1)) + node.val
+            # print(score)
+            return score
+
+        return max(dp(root))
+
+    def maxGroupNumber(self, tiles: List[int]) -> int:
+        """
+        >>> LC_2021_Team().maxGroupNumber([2,2,2,4,5,6])
+        >>> LC_2021_Team().maxGroupNumber([2,2,2,3,4,1,3])
+
+        """
+        a = Counter(tiles)
+        res = 0
+
+        def func(ll):
+            print(ll)
+            if len(ll) < 3: return sum(i//3 for i in ll)
+            else:
+                # lst[i][j] 表示 i列 j组末尾牌的最大组数
+                lst = [[0]*(ll[0]+1), [0]*(ll[1]+1)]
+                for i in range(2, len(ll)):
+                    res = [0]*(min(ll[i-2:i+1])+1)
+                    for j in range(len(res)):
+                        res[j] =
+
+
+
+        a = [[k, v] for k, v in a.items()]
+        a.sort()
+        lst = [a[0]]
+        for k, v in a[1:]:
+            if lst[-1][0] == k-1:
+                lst.append([k, v])
+            else:
+                res += func([i for _, i in lst])
+                lst = [[k, v]]
+        if lst: res += func([i for _, i in lst])
+        return res
+
+## 用 doctest测试比较方便
+# for i in range(5):
+#     for j in range(5):
+#         print(i, j, end=' ')
+#         print(Solution().orchestraLayout(5,i,j))

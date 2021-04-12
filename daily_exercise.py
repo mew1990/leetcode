@@ -5,6 +5,8 @@
 from typing import *
 from collections import *
 import bisect
+import heapq
+
 
 
 class Feb_2021:
@@ -347,3 +349,34 @@ class Feb_2021:
             else:
                 res[pos] = y
         return len(res)
+
+    def isUgly(self, n: int) -> bool:
+        # 定义，丑数必须是正整数，且素因子只有2,3,5。特别地，1也是丑数
+        if n <= 0: return False
+        for i in [2, 3, 5]:
+            while n%i == 0:
+                n //= i
+        return n == 1
+
+    def nthUglyNumber(self, n: int) -> int:
+        # 三指针
+        # res = [1]
+        # p2 = p3 = p5 = 0
+        # for i in range(n):
+        #     a = min([res[p2]*2, res[p3]*3, res[p5]*5])
+        #     res.append(a)
+        #     if res[p2]*2==a: p2+=1
+        #     if res[p3]*3==a: p3+=1
+        #     if res[p5]*5==a: p5+=1
+        # return res[n-1]
+
+        # 小顶堆
+        res = [1]
+        h = []
+        for i in range(n):
+            heapq.heappush(h, res[-1]*2)
+            heapq.heappush(h, res[-1]*3)
+            heapq.heappush(h, res[-1]*5)
+            while h[0] == res[-1]: heapq.heappop(h)
+            res.append(heapq.heappop(h))
+        return res[n-1]

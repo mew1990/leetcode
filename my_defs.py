@@ -177,3 +177,91 @@ class Trie:
     def contains(self, s: str) -> bool:
         node = self._search(s)
         return True if node is not None and '$' in node else False
+
+
+class Tr:
+    """
+    >>> tr = Tr(10)  # op 可以是 min max sum
+    >>> tr.build(1, 0, 10)  # k的左节点是2k，右节点是2k+1，所以k从1开始，记录区间为（0， 10）
+    >>> pprint([[tr.l[i], tr.r[i], tr.v[i]] for i in range(len(tr.l))])
+
+    """
+
+    def __init__(self, n: int, op=min, INF=float('inf'), default_v=0):
+        self.l = [0]*(n*4)
+        self.r = [0]*(n*4)
+        self.v = [default_v]*(n*4)
+        self.op = op
+        self.INF = INF
+
+    def build(self, u: int, l: int, r: int) -> None:
+        self.l[u] = l
+        self.r[u] = r
+        if l<r:
+            mid = l+r>>1
+            self.build(u<<1, l, mid)
+            self.build(u<<1|1, mid+1, r)
+
+    def _pushup(self, u: int) -> None:
+        self.v[u] = self.op(self.v[u<<1], self.v[u<<1|1])
+
+    def update(self, u: int, k, v) -> None:
+        if self.l[u] == self.r[u]:
+            self.v[u] = v  # 单点更新，更新方式可能不同
+        else:
+            mid = self.l[u]+self.r[u]>>1
+            if k <= mid: self.update(u<<1, k, v)
+            else: self.update(u<<1|1, k, v)
+            self._pushup(u)
+
+    def query(self, u: int, l: int, r: int) -> int:
+        if self.l[u] >= l and self.r[u] <= r: return self.v[u]
+        mid = self.l[u]+self.r[u]>>1
+        res = self.INF
+        if l <= mid: res = self.query(u<<1, l, r)
+        if r > mid: res = self.op(res, self.query(u<<1|1, l, r))
+        return res
+tr = Tr(10)
+tr.build(1, 0, 10)
+
+class Trlist:
+    """ 树状数组，单点修改，区间求和， 内部下标从1开始
+
+    对a[]进行区间求和
+    .add(u, val)： 预处理，累加a[u]+=val
+    .acc(u): 求区间和，返回a[:u]的区间和，acc(0)恒等于0， acc(u)表示包含u下标
+
+    >>> tr = Trlist(10)
+    >>> for i in range(1, 11):
+    ...     tr.add(i, i)
+    >>> print([tr.acc(i) for i in range(1, 11)])
+    [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
+    >>> print(tr.c)
+    [0, 1, 3, 3, 10, 5, 11, 7, 36, 9, 19]
+
+    >>> tr.add(5, 100)
+    >>> print([tr.acc(i) for i in range(1, 11)])
+    [1, 3, 6, 10, 115, 121, 128, 136, 145, 155]
+    >>> print(tr.c)
+    [0, 1, 3, 3, 10, 105, 111, 7, 136, 9, 19]
+
+    """
+
+    def __init__(self, n: int, default=0):
+        self.n = n
+        self.c = [default]*(n+1)
+
+    def _lowbit(self, u: int):
+        return u&(-u)
+
+    def add(self, u: int, val: int):
+        while u <= self.n:
+            self.c[u] += val
+            u += self._lowbit(u)
+
+    def acc(self, u: int) -> int:
+        res = 0
+        while u > 0:
+            res += self.c[u]
+            u -= self._lowbit(u)
+        return res
