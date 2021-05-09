@@ -380,3 +380,32 @@ class Feb_2021:
             while h[0] == res[-1]: heapq.heappop(h)
             res.append(heapq.heappop(h))
         return res[n-1]
+
+
+class May_2021:
+    def minimumTimeRequired(self, jobs: List[int], k: int) -> int:
+        """
+        >>> May_2021().minimumTimeRequired([2,3,5],2)
+        5
+        >>> May_2021().minimumTimeRequired([2,2,2,2,3,5],2)
+        8
+        """
+        # a[i][j] 表示前i个人j状态下选择的最小工作时间
+        # a[i][j] = min(max(a[i-1][j1], b[j2]), j2=1~1<<n, j1&j2==0, j1^j2=j)
+        n = len(jobs)
+        a = [[float('inf')]*(1<<n) for _ in range(k)]
+        a[0] = [0]*(1<<n)
+        for j in range(1<<n):
+            for jn in range(n):
+                if (j>>jn)&1:
+                    a[0][j] += jobs[jn]
+        for i in range(1, k):
+            for j in range(1<<n):
+                jj = j
+                while jj:
+                    a[i][j] = min(a[i][j], max(a[i-1][jj], a[0][j^jj]))
+                    jj = (jj-1)&j
+                    # print(jj, j^jj, j, a[i][j])
+        # print(a)
+
+        return a[-1][-1]
