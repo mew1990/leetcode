@@ -14,5 +14,13 @@ solution.py 和 solution_testcase.py，搭配pycharm，使用 unittest 可以对
 1. 先实现通用场景，然后考虑边界或特殊情况（能用守卫条件最好，或者函数功能化分）
 
 
+# About cheatsheet
+
+recommend:
+    https://quickref.me/
+    https://devhints.io/
 
 
+details:
+    go:  
+        https://quickref.me/go
