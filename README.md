@@ -21,6 +21,13 @@ recommend:
     https://devhints.io/
 
 
-details:
+basic usage:
     go:  
         https://quickref.me/go
+
+    java:
+        https://quickref.me/java
+    
+data structure:
+    java:
+        https://www.codechef.com/blogs/data-structures-in-java
